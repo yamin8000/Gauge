@@ -4,7 +4,7 @@ Gauge Composable is a fusion of classic and modern Gauges with some customizatio
 
 ## Preview (WIP)
 
-<img src="/screenshots/alpha/gauge.png" alt="preview" width="200"/>
+<img src="Gauge/screenshots/alpha/gauge.png" alt="preview" width="300"/>
 
 ## Compatibility
 
