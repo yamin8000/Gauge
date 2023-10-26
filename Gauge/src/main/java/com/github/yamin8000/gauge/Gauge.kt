@@ -62,6 +62,7 @@ import kotlin.math.sin
 fun Gauge(
     value: Float,
     valueRange: ClosedFloatingPointRange<Float>,
+    modifier: Modifier = Modifier,
     totalSize: Dp = LocalConfiguration.current.screenWidthDp.dp,
     numerics: GaugeNumerics,
     style: GaugeStyle = GaugeStyle(),
@@ -80,7 +81,7 @@ fun Gauge(
     require(numerics.sweepAngle < 360) { "Sweep angle: ${numerics.sweepAngle} cannot be bigger than 360 degrees, Sweep angles bigger than 360 degrees draws wrong arcs." }
 
     BoxWithConstraints(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         content = {
             val size = if (totalSize > maxWidth) maxWidth
             else if (totalSize > maxHeight) maxHeight
