@@ -24,12 +24,20 @@ package com.github.yamin8000.gauge
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.dp
 import com.github.yamin8000.gauge.ui.theme.GaugeTheme
 
 class MainActivity : ComponentActivity() {
@@ -39,10 +47,45 @@ class MainActivity : ComponentActivity() {
             GaugeTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Greeting("Android")
-                }
+                    content = {
+                        Column(
+                            modifier = Modifier.padding(32.dp)
+                        ) {
+                            val configuration = LocalConfiguration.current
+                            val screenWidth = configuration.screenWidthDp.dp
+                            var value by remember { mutableFloatStateOf(0f) }
+                            var totalSize by remember { mutableFloatStateOf(350f) }
+                            Gauge(
+                                value = value,
+                                valueRange = 0f..100f,
+                                totalSize = totalSize.dp,
+                                numerics = GaugeNumerics(
+                                    startAngle = 120,
+                                    sweepAngle = 300,
+                                    pointsStep = 30,
+                                    marksStep = 2
+                                )
+                            )
+                            Text("width: $screenWidth")
+                            Text("Value: $value")
+                            Slider(
+                                value = value,
+                                valueRange = 0f..100f,
+                                onValueChange = {
+                                    value = it
+                                }
+                            )
+                            Text("Total Size: $totalSize")
+                            Slider(
+                                value = totalSize,
+                                valueRange = 0f..500f,
+                                onValueChange = {
+                                    totalSize = it
+                                }
+                            )
+                        }
+                    }
+                )
             }
         }
     }

@@ -30,3 +30,11 @@ internal fun translate(
             (originalRange.endInclusive - originalRange.start))
     return (input - originalRange.start) * scale
 }
+
+internal fun translate2(
+    input: Float,
+    originalRange: ClosedFloatingPointRange<Float>,
+    outputRange: ClosedFloatingPointRange<Float>,
+): Float {
+    return (((input - originalRange.start) * (outputRange.endInclusive - outputRange.start)) / (originalRange.endInclusive - originalRange.start)) + outputRange.start
+}

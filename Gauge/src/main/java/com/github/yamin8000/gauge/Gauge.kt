@@ -23,6 +23,8 @@ package com.github.yamin8000.gauge
 
 import androidx.annotation.FloatRange
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +40,7 @@ import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlin.math.cos
@@ -48,7 +51,7 @@ import kotlin.math.sin
  *
  * @param value current value of the gauge, this value effects Gauge's arc and Gauge's indicator (hand)
  * @param valueRange the range to bound the value
- * @param size total size of this Gauge as a Composable
+ * @param totalSize total size of this Gauge as a Composable
  * @param numerics refer to [GaugeNumerics]
  * @param style refer to [GaugeStyle]
  * @param colors refer to [GaugeColors]
@@ -59,109 +62,180 @@ import kotlin.math.sin
 fun Gauge(
     value: Float,
     valueRange: ClosedFloatingPointRange<Float>,
-    size: Dp,
+    totalSize: Dp = LocalConfiguration.current.screenWidthDp.dp,
     numerics: GaugeNumerics,
     style: GaugeStyle = GaugeStyle(),
     colors: GaugeColors = GaugeColors(
-        outerRing = MaterialTheme.colorScheme.primary,
-        innerRing = MaterialTheme.colorScheme.secondary,
+        outerRing = MaterialTheme.colorScheme.primaryContainer,
+        innerRing = MaterialTheme.colorScheme.tertiaryContainer,
         centerCircle = MaterialTheme.colorScheme.tertiary,
         offArc = MaterialTheme.colorScheme.inversePrimary,
         onArc = MaterialTheme.colorScheme.primary,
         marks = MaterialTheme.colorScheme.inversePrimary,
-        markPoints = MaterialTheme.colorScheme.primary
+        markPoints = MaterialTheme.colorScheme.primary,
+        hand = MaterialTheme.colorScheme.primary
     )
 ) {
-    val totalAngle = numerics.startAngle + numerics.sweepAngle
-    if (value !in valueRange)
-        throw IllegalArgumentException("Gauge value: $value is out of Gauge Value range $valueRange")
-    if (numerics.sweepAngle > 360)
-        throw IllegalArgumentException("Sweep angle: ${numerics.sweepAngle} cannot be bigger than 360 degrees, Sweep angles bigger than 360 degrees draws wrong arcs.")
-    val marksSizeFraction = remember { .8f }
-    Canvas(
-        modifier = Modifier
-            .width(size)
-            .height(size),
-        onDraw = {
-            if (style.hasOuterRing) {
-                drawRing(
-                    diameter = size,
-                    color = colors.outerRing,
-                    ringFraction = .05f,
-                    offset = center
-                )
-            }
-            drawRing(
-                diameter = size / 10,
-                color = colors.innerRing,
-                ringFraction = .3f,
-                offset = center
-            )
-            drawCircle(
-                color = colors.centerCircle,
-                radius = size.toPx() / 50,
-                center = center
-            )
-            val startRatio = 60f
-            for (degree in numerics.startAngle..totalAngle step numerics.marksStep) {
-                val isPoint = degree % numerics.pointsStep == 0
-                val endRatio = if (isPoint) 140f else 120f
-                val width = if (isPoint) 2f else 1f
-                val markPointColor = if (isPoint) colors.markPoints else colors.marks
+    require(value in valueRange) { "Gauge value: $value is out of Gauge Value range $valueRange" }
+    require(numerics.sweepAngle < 360) { "Sweep angle: ${numerics.sweepAngle} cannot be bigger than 360 degrees, Sweep angles bigger than 360 degrees draws wrong arcs." }
 
-                val radian = Math.toRadians(degree.toDouble())
-                val cos = cos(radian).toFloat()
-                val sin = sin(radian).toFloat()
-                val x = translate(cos, -1f..1f, 0f..size.toPx())
-                val y = translate(sin, -1f..1f, 0f..size.toPx())
-                drawLine(
-                    color = markPointColor,
-                    strokeWidth = width,
-                    cap = StrokeCap.Butt,
-                    start = Offset(
-                        x.minus(cos.times(startRatio)),
-                        y.minus(sin.times(startRatio))
-                    ),
-                    end = Offset(
-                        x.minus(cos.times(endRatio)),
-                        y.minus(sin.times(endRatio))
+    BoxWithConstraints(
+        modifier = Modifier.fillMaxWidth(),
+        content = {
+            val size = if (totalSize > maxWidth) maxWidth
+            else if (totalSize > maxHeight) maxHeight
+            else totalSize
+            val totalAngle = numerics.startAngle + numerics.sweepAngle
+            val marksSizeFraction = remember { .8f }
+            Canvas(
+                modifier = Modifier
+                    .width(size)
+                    .height(size),
+                onDraw = {
+                    if (style.hasOuterRing) {
+                        drawRing(
+                            diameter = size,
+                            color = colors.outerRing,
+                            ringFraction = .05f,
+                            offset = center
+                        )
+                    }
+                    drawMarks(
+                        numerics = numerics,
+                        totalAngle = totalAngle,
+                        colors = colors,
+                        size = size
                     )
-                )
-            }
-            if (style.hasArcs) {
-                val arcStroke = Stroke(width = size.toPx() / 30f, miter = 0f, cap = style.arcCap)
-                val arcSize = Size(
-                    size.times(marksSizeFraction).toPx(),
-                    size.times(marksSizeFraction).toPx()
-                )
-                val arcTopLeft = Offset(
-                    size.times((1 - marksSizeFraction) / 2).toPx(),
-                    size.times((1 - marksSizeFraction) / 2).toPx()
-                )
-                drawArc(
-                    color = colors.offArc,
-                    startAngle = numerics.startAngle.toFloat(),
-                    sweepAngle = numerics.sweepAngle.toFloat(),
-                    useCenter = false,
-                    style = arcStroke,
-                    size = arcSize,
-                    topLeft = arcTopLeft
-                )
-                drawArc(
-                    color = colors.onArc,
-                    startAngle = numerics.startAngle.toFloat(),
-                    sweepAngle = translate(
-                        value,
-                        valueRange.start..valueRange.endInclusive,
-                        numerics.startAngle.toFloat()..totalAngle.toFloat()
-                    ),
-                    useCenter = false,
-                    style = arcStroke,
-                    size = arcSize,
-                    topLeft = arcTopLeft
-                )
-            }
+                    if (style.hasArcs) {
+                        drawArcs(
+                            size = size,
+                            style = style,
+                            marksSizeFraction = marksSizeFraction,
+                            onArcColor = colors.onArc,
+                            offArcColor = colors.offArc,
+                            numerics = numerics,
+                            value = value,
+                            valueRange = valueRange,
+                            totalAngle = totalAngle
+                        )
+                    }
+                    drawRing(
+                        diameter = size / 10,
+                        color = colors.innerRing,
+                        ringFraction = .3f,
+                        offset = center
+                    )
+                    val valueDegrees =
+                        translate2(
+                            value,
+                            valueRange,
+                            numerics.startAngle.toFloat()..totalAngle.toFloat()
+                        )
+                    val radian = Math.toRadians(valueDegrees.toDouble())
+                    val cos = cos(radian).toFloat()
+                    val sin = sin(radian).toFloat()
+                    val x = translate(cos, -1f..1f, 0f..size.toPx())
+                    val y = translate(sin, -1f..1f, 0f..size.toPx())
+                    drawLine(
+                        color = colors.hand,
+                        start = center,
+                        strokeWidth = 10f,
+                        cap = StrokeCap.Round,
+                        end = Offset(
+                            x.minus(cos.times(size.toPx() / 10f)),
+                            y.minus(sin.times(size.toPx() / 10f))
+                        )
+                    )
+                    drawCircle(
+                        color = colors.centerCircle,
+                        radius = size.toPx() / 50,
+                        center = center
+                    )
+                }
+            )
         }
+    )
+}
+
+private fun DrawScope.drawMarks(
+    numerics: GaugeNumerics,
+    totalAngle: Int,
+    colors: GaugeColors,
+    size: Dp
+) {
+    val startRatio = size.toPx().div(9f)
+    for (degree in numerics.startAngle..totalAngle step numerics.marksStep) {
+        val isPoint = degree % numerics.pointsStep == 0
+        val endRatio = if (isPoint) size.toPx().div(4f) else size.toPx().div(4.5f)
+        val width = if (isPoint) 2f else 1f
+        val markPointColor = if (isPoint) colors.markPoints else colors.marks
+
+        val radian = Math.toRadians(degree.toDouble())
+        val cos = cos(radian).toFloat()
+        val sin = sin(radian).toFloat()
+        val x = translate(cos, -1f..1f, 0f..size.toPx())
+        val y = translate(sin, -1f..1f, 0f..size.toPx())
+        drawLine(
+            color = markPointColor,
+            strokeWidth = width,
+            cap = StrokeCap.Butt,
+            start = Offset(
+                x.minus(cos.times(startRatio)),
+                y.minus(sin.times(startRatio))
+            ),
+            end = Offset(
+                x.minus(cos.times(endRatio)),
+                y.minus(sin.times(endRatio))
+            )
+        )
+    }
+}
+
+private fun DrawScope.drawArcs(
+    size: Dp,
+    style: GaugeStyle,
+    marksSizeFraction: Float,
+    onArcColor: Color,
+    offArcColor: Color,
+    numerics: GaugeNumerics,
+    value: Float,
+    valueRange: ClosedFloatingPointRange<Float>,
+    totalAngle: Int
+) {
+    val arcStroke = Stroke(
+        width = size.toPx() / 15f,
+        miter = 0f,
+        cap = style.arcCap
+    )
+    val arcSize = Size(
+        size.times(marksSizeFraction).toPx(),
+        size.times(marksSizeFraction).toPx()
+    )
+    val arcTopLeft = Offset(
+        size.times((1 - marksSizeFraction) / 2).toPx(),
+        size.times((1 - marksSizeFraction) / 2).toPx()
+    )
+    drawArc(
+        color = offArcColor,
+        startAngle = numerics.startAngle.toFloat(),
+        sweepAngle = numerics.sweepAngle.toFloat(),
+        useCenter = false,
+        style = arcStroke,
+        size = arcSize,
+        topLeft = arcTopLeft
+    )
+    drawArc(
+        color = onArcColor,
+        startAngle = numerics.startAngle.toFloat(),
+        sweepAngle = translate(
+            value,
+            valueRange.start..valueRange.endInclusive,
+            numerics.startAngle.toFloat()..totalAngle.toFloat()
+        ),
+        useCenter = false,
+        style = arcStroke,
+        size = arcSize,
+        topLeft = arcTopLeft
     )
 }
 
