@@ -21,12 +21,14 @@
 
 package com.github.yamin8000.gauge
 
+import androidx.annotation.FloatRange
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ColorScheme
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -50,51 +52,117 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.cos
+import kotlin.math.sin
 
-@Preview
+@Preview(showBackground = true)
 @Composable
-fun TestGauge() {
-    val colors = MaterialTheme.colorScheme
+fun GaugePreview() {
     Surface {
-        Canvas(
-            modifier = Modifier.size(200.dp),
-            onDraw = {
-                drawCenterCircles(colors)
-            }
+        Gauge(
+            size = 200.dp,
+            gaugeStart = 150,
+            gaugeEnd = 390,
+            gaugeStep = 2
         )
     }
 }
 
+@Composable
+fun Gauge(
+    size: Dp,
+    gaugeStart: Int,
+    gaugeEnd: Int,
+    gaugeStep: Int
+) {
+    val colors = MaterialTheme.colorScheme
+    Canvas(
+        modifier = Modifier
+            .width(size)
+            .height(size),
+        onDraw = {
+            drawRing(
+                diameter = size,
+                color = colors.primary,
+                ringFraction = .05f,
+                offset = center
+            )
+            drawRing(
+                diameter = size / 10,
+                color = colors.secondary,
+                ringFraction = .3f,
+                offset = center
+            )
+            drawCircle(
+                color = colors.tertiary,
+                radius = size.toPx() / 50,
+                center = center
+            )
 
-private fun DrawScope.drawCenterCircles(colors: ColorScheme) {
-    val circleSize = (size.width + size.height) / 25f
+            for (i in gaugeStart..gaugeEnd step gaugeStep) {
+                val radian = Math.toRadians(i.toDouble())
+                val x = translate(cos(radian).toFloat(), -1f..1f, 0f..size.toPx())
+                val y = translate(sin(radian).toFloat(), -1f..1f, 0f..size.toPx())
+                drawLine(
+                    color = colors.primary,
+                    start = Offset(
+                        x.minus(cos(radian).toFloat() * 150f),
+                        y.minus(sin(radian).toFloat() * 150f)
+                    ),
+                    end = center.copy(
+                        center.x.plus(cos(radian).toFloat() * 200f),
+                        center.y.plus(sin(radian).toFloat() * 200f)
+                    )
+                )
+            }
+        }
+    )
+}
+
+@Composable
+fun Ring(
+    modifier: Modifier = Modifier,
+    diameter: Dp = 100.dp,
+    @FloatRange(from = 0.0, 1.0)
+    ringSize: Float = .1f,
+    color: Color = MaterialTheme.colorScheme.primary
+) {
+    Canvas(
+        modifier = modifier.size(diameter),
+        onDraw = {
+            drawRing(
+                color = color,
+                diameter = diameter,
+                ringFraction = ringSize
+            )
+        }
+    )
+}
+
+fun DrawScope.drawRing(
+    color: Color,
+    diameter: Dp = 100.dp,
+    @FloatRange(from = 0.0, 1.0)
+    ringFraction: Float = .1f,
+    offset: Offset = Offset.Zero
+) {
     val path = Path().apply {
-        addOval(Rect(0f, 0f, circleSize, circleSize))
+        val size = diameter.toPx()
+        addOval(Rect(0f, 0f, size, size))
         op(
             path1 = this,
             path2 = Path().apply {
                 addOval(
-                    Rect(
-                        0f,
-                        0f,
-                        circleSize * .75f,
-                        circleSize * .75f
-                    )
+                    Rect(0f, 0f, size * (1 - ringFraction), size * (1 - ringFraction))
                 )
-                translate(Offset(circleSize * .125f, circleSize * .125f))
+                translate(Offset(size * ringFraction / 2, size * ringFraction / 2))
             },
             operation = PathOperation.Difference
         )
-        translate(center.copy(center.x - circleSize / 2, center.y - circleSize / 2))
+        if (offset != Offset.Zero)
+            translate(offset.copy(offset.x - size / 2, offset.y - size / 2))
     }
-    drawPath(
-        path = path,
-        color = colors.primary,
-    )
-    drawCircle(
-        color = colors.primary,
-        radius = circleSize / 10f
-    )
+    drawPath(path, color)
 }
 
 @Composable
