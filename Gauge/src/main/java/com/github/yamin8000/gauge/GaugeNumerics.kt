@@ -1,7 +1,7 @@
 /*
  *     Gauge/Gauge.Gauge.main
- *     Utility.kt Copyrighted by Yamin Siahmargooei at 2023/10/26
- *     Utility.kt Last modified copyright at 2023/10/26
+ *     GaugeNumerics.kt Copyrighted by Yamin Siahmargooei at 2023/10/26
+ *     GaugeNumerics.kt Last modified copyright at 2023/10/26
  *     This file is part of Gauge/Gauge.Gauge.main.
  *     Copyright (C) 2023  Yamin Siahmargooei
  *
@@ -21,12 +21,17 @@
 
 package com.github.yamin8000.gauge
 
-internal fun translate(
-    input: Float,
-    originalRange: ClosedFloatingPointRange<Float>,
-    outputRange: ClosedFloatingPointRange<Float>,
-): Float {
-    val scale = ((outputRange.endInclusive - outputRange.start) /
-            (originalRange.endInclusive - originalRange.start))
-    return (input - originalRange.start) * scale
-}
+/**
+ * GaugeNumerics represent mathematical numbers that are used to create the [Gauge]
+ *
+ * @param startAngle Gauge's starting angle, 0 represents 3 o'clock
+ * @param sweepAngle size of degrees to draw the Gauge's arc and marks clockwise relative to [startAngle]
+ * @param marksStep step to draw Gauge's marks on [startAngle] to [sweepAngle] range
+ * @param pointsStep point's step to draw Gauge's points (bigger marks) on [startAngle] to [sweepAngle] range
+ */
+data class GaugeNumerics(
+    val startAngle: Int,
+    val sweepAngle: Int,
+    val marksStep: Int = 2,
+    val pointsStep: Int = 10,
+)

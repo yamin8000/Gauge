@@ -1,7 +1,7 @@
 /*
  *     Gauge/Gauge.Gauge.main
- *     Utility.kt Copyrighted by Yamin Siahmargooei at 2023/10/26
- *     Utility.kt Last modified copyright at 2023/10/26
+ *     GaugeStyle.kt Copyrighted by Yamin Siahmargooei at 2023/10/26
+ *     GaugeStyle.kt Last modified copyright at 2023/10/26
  *     This file is part of Gauge/Gauge.Gauge.main.
  *     Copyright (C) 2023  Yamin Siahmargooei
  *
@@ -21,12 +21,17 @@
 
 package com.github.yamin8000.gauge
 
-internal fun translate(
-    input: Float,
-    originalRange: ClosedFloatingPointRange<Float>,
-    outputRange: ClosedFloatingPointRange<Float>,
-): Float {
-    val scale = ((outputRange.endInclusive - outputRange.start) /
-            (originalRange.endInclusive - originalRange.start))
-    return (input - originalRange.start) * scale
-}
+import androidx.compose.ui.graphics.StrokeCap
+
+/**
+ * Visual style of the Gauge
+ *
+ * @param hasOuterRing whether to show Gauge's outer ring or not
+ * @param hasArcs whether to show Gauge's arcs or not
+ * @param arcCap Gauge arc's [StrokeCap] type
+ */
+data class GaugeStyle(
+    val hasOuterRing: Boolean = true,
+    val hasArcs: Boolean = true,
+    val arcCap: StrokeCap = StrokeCap.Round
+)

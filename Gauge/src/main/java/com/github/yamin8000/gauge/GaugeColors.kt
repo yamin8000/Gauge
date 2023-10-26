@@ -1,7 +1,7 @@
 /*
  *     Gauge/Gauge.Gauge.main
- *     Utility.kt Copyrighted by Yamin Siahmargooei at 2023/10/26
- *     Utility.kt Last modified copyright at 2023/10/26
+ *     GaugeColors.kt Copyrighted by Yamin Siahmargooei at 2023/10/26
+ *     GaugeColors.kt Last modified copyright at 2023/10/26
  *     This file is part of Gauge/Gauge.Gauge.main.
  *     Copyright (C) 2023  Yamin Siahmargooei
  *
@@ -21,12 +21,14 @@
 
 package com.github.yamin8000.gauge
 
-internal fun translate(
-    input: Float,
-    originalRange: ClosedFloatingPointRange<Float>,
-    outputRange: ClosedFloatingPointRange<Float>,
-): Float {
-    val scale = ((outputRange.endInclusive - outputRange.start) /
-            (originalRange.endInclusive - originalRange.start))
-    return (input - originalRange.start) * scale
-}
+import androidx.compose.ui.graphics.Color
+
+data class GaugeColors(
+    val outerRing: Color,
+    val innerRing: Color,
+    val centerCircle: Color,
+    val offArc: Color,
+    val onArc: Color,
+    val marks: Color,
+    val markPoints: Color
+)

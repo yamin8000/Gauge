@@ -23,123 +23,149 @@ package com.github.yamin8000.gauge
 
 import androidx.annotation.FloatRange
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.rotate
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kotlin.math.cos
 import kotlin.math.sin
 
-@Preview(showBackground = true)
-@Composable
-fun GaugePreview() {
-    Surface {
-        Gauge(
-            size = 200.dp,
-            gaugeStart = 150,
-            gaugeEnd = 390,
-            gaugeStep = 2
-        )
-    }
-}
-
+/**
+ * Gauge Composable is a fusion of classic and modern Gauges with some customization options.
+ *
+ * @param value current value of the gauge, this value effects Gauge's arc and Gauge's indicator (hand)
+ * @param valueRange the range to bound the value
+ * @param size total size of this Gauge as a Composable
+ * @param numerics refer to [GaugeNumerics]
+ * @param style refer to [GaugeStyle]
+ * @param colors refer to [GaugeColors]
+ *
+ * @throws IllegalArgumentException when some parameters are inconsistent with the design
+ */
 @Composable
 fun Gauge(
+    value: Float,
+    valueRange: ClosedFloatingPointRange<Float>,
     size: Dp,
-    gaugeStart: Int,
-    gaugeEnd: Int,
-    gaugeStep: Int
+    numerics: GaugeNumerics,
+    style: GaugeStyle = GaugeStyle(),
+    colors: GaugeColors = GaugeColors(
+        outerRing = MaterialTheme.colorScheme.primary,
+        innerRing = MaterialTheme.colorScheme.secondary,
+        centerCircle = MaterialTheme.colorScheme.tertiary,
+        offArc = MaterialTheme.colorScheme.inversePrimary,
+        onArc = MaterialTheme.colorScheme.primary,
+        marks = MaterialTheme.colorScheme.inversePrimary,
+        markPoints = MaterialTheme.colorScheme.primary
+    )
 ) {
-    val colors = MaterialTheme.colorScheme
+    val totalAngle = numerics.startAngle + numerics.sweepAngle
+    if (value !in valueRange)
+        throw IllegalArgumentException("Gauge value: $value is out of Gauge Value range $valueRange")
+    if (numerics.sweepAngle > 360)
+        throw IllegalArgumentException("Sweep angle: ${numerics.sweepAngle} cannot be bigger than 360 degrees, Sweep angles bigger than 360 degrees draws wrong arcs.")
+    val marksSizeFraction = remember { .8f }
     Canvas(
         modifier = Modifier
             .width(size)
             .height(size),
         onDraw = {
-            drawRing(
-                diameter = size,
-                color = colors.primary,
-                ringFraction = .05f,
-                offset = center
-            )
+            if (style.hasOuterRing) {
+                drawRing(
+                    diameter = size,
+                    color = colors.outerRing,
+                    ringFraction = .05f,
+                    offset = center
+                )
+            }
             drawRing(
                 diameter = size / 10,
-                color = colors.secondary,
+                color = colors.innerRing,
                 ringFraction = .3f,
                 offset = center
             )
             drawCircle(
-                color = colors.tertiary,
+                color = colors.centerCircle,
                 radius = size.toPx() / 50,
                 center = center
             )
+            val startRatio = 60f
+            for (degree in numerics.startAngle..totalAngle step numerics.marksStep) {
+                val isPoint = degree % numerics.pointsStep == 0
+                val endRatio = if (isPoint) 140f else 120f
+                val width = if (isPoint) 2f else 1f
+                val markPointColor = if (isPoint) colors.markPoints else colors.marks
 
-            for (i in gaugeStart..gaugeEnd step gaugeStep) {
-                val radian = Math.toRadians(i.toDouble())
-                val x = translate(cos(radian).toFloat(), -1f..1f, 0f..size.toPx())
-                val y = translate(sin(radian).toFloat(), -1f..1f, 0f..size.toPx())
+                val radian = Math.toRadians(degree.toDouble())
+                val cos = cos(radian).toFloat()
+                val sin = sin(radian).toFloat()
+                val x = translate(cos, -1f..1f, 0f..size.toPx())
+                val y = translate(sin, -1f..1f, 0f..size.toPx())
                 drawLine(
-                    color = colors.primary,
+                    color = markPointColor,
+                    strokeWidth = width,
+                    cap = StrokeCap.Butt,
                     start = Offset(
-                        x.minus(cos(radian).toFloat() * 150f),
-                        y.minus(sin(radian).toFloat() * 150f)
+                        x.minus(cos.times(startRatio)),
+                        y.minus(sin.times(startRatio))
                     ),
-                    end = center.copy(
-                        center.x.plus(cos(radian).toFloat() * 200f),
-                        center.y.plus(sin(radian).toFloat() * 200f)
+                    end = Offset(
+                        x.minus(cos.times(endRatio)),
+                        y.minus(sin.times(endRatio))
                     )
+                )
+            }
+            if (style.hasArcs) {
+                val arcStroke = Stroke(width = size.toPx() / 30f, miter = 0f, cap = style.arcCap)
+                val arcSize = Size(
+                    size.times(marksSizeFraction).toPx(),
+                    size.times(marksSizeFraction).toPx()
+                )
+                val arcTopLeft = Offset(
+                    size.times((1 - marksSizeFraction) / 2).toPx(),
+                    size.times((1 - marksSizeFraction) / 2).toPx()
+                )
+                drawArc(
+                    color = colors.offArc,
+                    startAngle = numerics.startAngle.toFloat(),
+                    sweepAngle = numerics.sweepAngle.toFloat(),
+                    useCenter = false,
+                    style = arcStroke,
+                    size = arcSize,
+                    topLeft = arcTopLeft
+                )
+                drawArc(
+                    color = colors.onArc,
+                    startAngle = numerics.startAngle.toFloat(),
+                    sweepAngle = translate(
+                        value,
+                        valueRange.start..valueRange.endInclusive,
+                        numerics.startAngle.toFloat()..totalAngle.toFloat()
+                    ),
+                    useCenter = false,
+                    style = arcStroke,
+                    size = arcSize,
+                    topLeft = arcTopLeft
                 )
             }
         }
     )
 }
 
-@Composable
-fun Ring(
-    modifier: Modifier = Modifier,
-    diameter: Dp = 100.dp,
-    @FloatRange(from = 0.0, 1.0)
-    ringSize: Float = .1f,
-    color: Color = MaterialTheme.colorScheme.primary
-) {
-    Canvas(
-        modifier = modifier.size(diameter),
-        onDraw = {
-            drawRing(
-                color = color,
-                diameter = diameter,
-                ringFraction = ringSize
-            )
-        }
-    )
-}
-
-fun DrawScope.drawRing(
+internal fun DrawScope.drawRing(
     color: Color,
     diameter: Dp = 100.dp,
     @FloatRange(from = 0.0, 1.0)
@@ -163,159 +189,4 @@ fun DrawScope.drawRing(
             translate(offset.copy(offset.x - size / 2, offset.y - size / 2))
     }
     drawPath(path, color)
-}
-
-@Composable
-fun Gauge(
-    progress: Number,
-    modifier: Modifier = Modifier,
-    label: String = "",
-    unit: String = "",
-    range: IntRange = 0..100,
-    totalSize: Dp = 200.dp,
-    markersColor: Color = MaterialTheme.colorScheme.tertiary,
-    onColor: Color = MaterialTheme.colorScheme.primary,
-    offColor: Color = MaterialTheme.colorScheme.primaryContainer,
-    arcColorProvider: (Color) -> Color = { generalColorProvider(progress, range, it) }
-) {
-    val intProgress = progress.toInt()
-    val normalProgress = when {
-        intProgress in range -> intProgress
-        intProgress < range.first -> 0
-        intProgress > range.last -> range.last
-        else -> -1
-    }
-    val startAngle = 135f
-    val totalDegrees = 270
-
-    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-        Box(
-            modifier = modifier,
-            content = {
-                GaugeText(
-                    text = progress.toString(),
-                    parentSize = totalSize,
-                    modifier = Modifier.align(Alignment.Center)
-                )
-                GaugeText(
-                    text = label,
-                    parentSize = totalSize,
-                    modifier = Modifier.align(Alignment.BottomCenter)
-                )
-                GaugeText(
-                    text = unit,
-                    parentSize = totalSize,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 32.dp)
-                )
-                GaugeText(
-                    range.first.toString(),
-                    parentSize = totalSize,
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(
-                            bottom = 16.dp,
-                            start = 24.dp
-                        )
-                )
-                GaugeText(
-                    range.last.toString(),
-                    parentSize = totalSize,
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(
-                            bottom = 16.dp,
-                            end = 2.dp
-                        )
-                )
-                Canvas(
-                    modifier = modifier
-                        .padding(4.dp)
-                        .size(totalSize)
-                        .aspectRatio(1f),
-                    onDraw = {
-                        val canvasWidth = size.width
-                        val canvasHeight = size.height
-
-                        drawIntoCanvas {
-                            for (degree in -90..180 step 4) {
-                                val endOffset =
-                                    if (degree % 5 == 0) center.times(.4f)
-                                    else center.times(.5f)
-
-                                it.save()
-                                it.rotate(
-                                    degree.toFloat(),
-                                    canvasWidth / 2f,
-                                    canvasHeight / 2f
-                                )
-                                drawLine(
-                                    color = markersColor,
-                                    start = center.times(.65f),
-                                    end = endOffset,
-                                    strokeWidth = totalSize.value / 200,
-                                    cap = StrokeCap.Butt
-                                )
-                                it.restore()
-                            }
-                        }
-
-                        val arcStyle =
-                            Stroke(width = canvasWidth / 20, miter = 0f, cap = StrokeCap.Butt)
-                        val arcTopLeft = Offset(size.width * .1f, this.size.height * .1f)
-                        val arcSize = size.times(.8f)
-                        drawArc(
-                            color = offColor,
-                            startAngle = startAngle,
-                            sweepAngle = totalDegrees.toFloat(),
-                            useCenter = false,
-                            style = arcStyle,
-                            size = arcSize,
-                            topLeft = arcTopLeft
-                        )
-                        drawArc(
-                            color = arcColorProvider(onColor),
-                            startAngle = startAngle,
-                            sweepAngle = totalDegrees.toFloat() * normalProgress / range.last,
-                            useCenter = false,
-                            style = arcStyle,
-                            size = arcSize,
-                            topLeft = arcTopLeft
-                        )
-                    }
-                )
-            }
-        )
-    }
-}
-
-@Composable
-private fun GaugeText(
-    text: String,
-    parentSize: Dp,
-    modifier: Modifier = Modifier
-) {
-    Text(
-        text = text,
-        maxLines = 1,
-        modifier = modifier,
-        fontSize = (parentSize.value / 8f).sp
-    )
-}
-
-fun generalColorProvider(
-    input: Number,
-    range: IntRange,
-    default: Color
-): Color {
-    val oneFour = range.last / 4
-    val x = when (input.toInt()) {
-        in range.first until oneFour -> Color(0xFFF44336)
-        in oneFour until oneFour * 2 -> Color(0xFFFFC107)
-        in oneFour * 2 until oneFour * 3 -> Color(0xFF8BC34A)
-        in oneFour * 3..range.last -> Color(0xFF009688)
-        else -> default
-    }
-    return x
 }
