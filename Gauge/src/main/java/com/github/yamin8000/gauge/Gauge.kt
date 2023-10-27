@@ -238,9 +238,10 @@ private fun DrawScope.drawArcs(
         size = arcSize,
         topLeft = arcTopLeft
     )
+    val alpha = value / valueRange.endInclusive
     drawArc(
         color = onArcColor,
-        alpha = if (hasProgressiveAlpha) value / valueRange.endInclusive else 1f,
+        alpha = if (hasProgressiveAlpha && alpha in 0f..1f) alpha else 1f,
         startAngle = numerics.startAngle.toFloat(),
         sweepAngle = translate(
             value,
