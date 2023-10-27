@@ -49,7 +49,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     content = {
                         Column(
-                            modifier = Modifier.padding(32.dp)
+                            modifier = Modifier.padding(16.dp)
                         ) {
                             val configuration = LocalConfiguration.current
                             val screenWidth = configuration.screenWidthDp.dp

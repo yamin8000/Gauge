@@ -78,7 +78,7 @@ fun Gauge(
     )
 ) {
     require(value in valueRange) { "Gauge value: $value is out of Gauge Value range $valueRange" }
-    require(numerics.sweepAngle < 360) { "Sweep angle: ${numerics.sweepAngle} cannot be bigger than 360 degrees, Sweep angles bigger than 360 degrees draws wrong arcs." }
+    require(numerics.sweepAngle in 1..360) { "Sweep angle: ${numerics.sweepAngle} must be from 1 to 360" }
 
     BoxWithConstraints(
         modifier = modifier.fillMaxWidth(),
@@ -178,8 +178,9 @@ private fun DrawScope.drawMarks(
     val startRatio = size.toPx().div(9f)
     for (degree in numerics.startAngle..totalAngle step numerics.marksStep) {
         val isPoint = degree % numerics.pointsStep == 0
+        val isStartOrEnd = isPoint && (degree == numerics.startAngle || degree == totalAngle)
         val endRatio = if (isPoint) size.toPx().div(4f) else size.toPx().div(4.5f)
-        val width = if (isPoint) 2f else 1f
+        val width = if (isPoint) size.div(500f).toPx() else size.div(700f).toPx()
         val markPointColor = if (isPoint) colors.markPoints else colors.marks
 
         val radian = Math.toRadians(degree.toDouble())
@@ -189,7 +190,7 @@ private fun DrawScope.drawMarks(
         val y = translate(sin, -1f..1f, 0f..size.toPx())
         drawLine(
             color = markPointColor,
-            strokeWidth = width,
+            strokeWidth = if (isStartOrEnd) width.times(4) else width,
             cap = StrokeCap.Butt,
             start = Offset(
                 x.minus(cos.times(startRatio)),

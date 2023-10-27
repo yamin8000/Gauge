@@ -22,7 +22,9 @@
 package com.github.yamin8000.gauge
 
 /**
- * GaugeNumerics represent mathematical numbers that are used to create the [Gauge]
+ * GaugeNumerics represent mathematical numbers that are used to create the [Gauge].
+ * It's highly advised to choose [startAngle] (like 120) and [sweepAngle] (like 300) from highly composite/abundant numbers,
+ * this way gauge is drawn more visually appealing.
  *
  * @param startAngle Gauge's starting angle, 0 represents 3 o'clock
  * @param sweepAngle size of degrees to draw the Gauge's arc and marks clockwise relative to [startAngle]
