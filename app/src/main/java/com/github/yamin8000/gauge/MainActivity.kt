@@ -64,6 +64,10 @@ class MainActivity : ComponentActivity() {
                                     sweepAngle = 300,
                                     pointsStep = 30,
                                     marksStep = 2
+                                ),
+                                style = GaugeStyle(
+                                    hasOuterRing = true,
+                                    handHasCircle = true
                                 )
                             )
                             Text("width: $screenWidth")

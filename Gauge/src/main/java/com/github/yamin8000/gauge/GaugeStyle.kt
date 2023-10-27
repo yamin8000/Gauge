@@ -33,5 +33,7 @@ import androidx.compose.ui.graphics.StrokeCap
 data class GaugeStyle(
     val hasOuterRing: Boolean = true,
     val hasArcs: Boolean = true,
+    val handHasCircle: Boolean = true,
+    val hasProgressiveArcAlpha: Boolean = true,
     val arcCap: StrokeCap = StrokeCap.Round
 )

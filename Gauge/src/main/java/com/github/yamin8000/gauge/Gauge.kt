@@ -117,7 +117,8 @@ fun Gauge(
                             numerics = numerics,
                             value = value,
                             valueRange = valueRange,
-                            totalAngle = totalAngle
+                            totalAngle = totalAngle,
+                            hasProgressiveAlpha = style.hasProgressiveArcAlpha
                         )
                     }
                     drawRing(
@@ -147,6 +148,16 @@ fun Gauge(
                             y.minus(sin.times(size.toPx() / 10f))
                         )
                     )
+                    if (style.handHasCircle) {
+                        drawCircle(
+                            color = colors.offArc,
+                            radius = size.toPx() / 50,
+                            center = Offset(
+                                x.minus(cos.times(size.toPx() / 10f)),
+                                y.minus(sin.times(size.toPx() / 10f))
+                            )
+                        )
+                    }
                     drawCircle(
                         color = colors.centerCircle,
                         radius = size.toPx() / 50,
@@ -201,7 +212,8 @@ private fun DrawScope.drawArcs(
     numerics: GaugeNumerics,
     value: Float,
     valueRange: ClosedFloatingPointRange<Float>,
-    totalAngle: Int
+    totalAngle: Int,
+    hasProgressiveAlpha: Boolean
 ) {
     val arcStroke = Stroke(
         width = size.toPx() / 15f,
@@ -227,6 +239,7 @@ private fun DrawScope.drawArcs(
     )
     drawArc(
         color = onArcColor,
+        alpha = if (hasProgressiveAlpha) value / valueRange.endInclusive else 1f,
         startAngle = numerics.startAngle.toFloat(),
         sweepAngle = translate(
             value,
