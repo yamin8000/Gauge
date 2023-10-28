@@ -19,13 +19,17 @@
  *     along with Gauge.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+private val artifact = "com.github.yamin8000.gauge"
+private val version = "1.0.0"
+
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
+    id("com.vanniktech.maven.publish")
 }
 
 android {
-    namespace = "com.github.yamin8000.gauge"
+    namespace = artifact
     compileSdk = 34
 
     defaultConfig {
@@ -75,5 +79,37 @@ dependencies {
 //    implementation("androidx.compose.material3:material3-window-size-class")
     implementation("androidx.compose.ui:ui-tooling-preview")
     debugImplementation("androidx.compose.ui:ui-tooling")
+}
 
+mavenPublishing {
+    publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.S01)
+    signAllPublications()
+
+    coordinates(artifact, "Gauge", version)
+
+    pom {
+        name.set("Gauge")
+        description.set("Gauge Composable is a fusion of classic and modern Gauges with some customization options.")
+        inceptionYear.set("2023")
+        url.set("https://github.com/yamin8000/Gauge")
+        licenses {
+            license {
+                name.set("GPL-3.0 license ")
+                url.set("https://www.gnu.org/licenses")
+                distribution.set("https://raw.githubusercontent.com/yamin8000/Gauge/master/LICENSE")
+            }
+        }
+        developers {
+            developer {
+                id.set("yamin8000")
+                name.set("Yamin Siahmargooei")
+                url.set("https://github.com/yamin8000")
+            }
+        }
+        scm {
+            url.set("https://github.com/yamin8000/Gauge")
+            connection.set("scm:git:git://github.com/yamin8000/Gauge.git")
+            developerConnection.set("scm:git:ssh://git@github.com:yamin8000/Gauge.git")
+        }
+    }
 }
