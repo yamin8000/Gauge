@@ -14,6 +14,8 @@ Gauge Composable is a fusion of classic and modern Gauges with some customizatio
 
 ## Install
 
+Check [latest](https://repo1.maven.org/maven2/com/github/yamin8000/gauge/Gauge/maven-metadata.xml) version from Maven Repository or [here](https://central.sonatype.com/artifact/com.github.yamin8000/gauge).
+
 ## Features
 
 ## License

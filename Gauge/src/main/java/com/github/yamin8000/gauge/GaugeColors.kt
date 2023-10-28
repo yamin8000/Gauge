@@ -30,6 +30,7 @@ data class GaugeColors(
     val offArc: Color,
     val onArc: Color,
     val marks: Color,
+    val hand: Color,
     val markPoints: Color,
-    val hand: Color
+    val markPointsTexts: Color
 )

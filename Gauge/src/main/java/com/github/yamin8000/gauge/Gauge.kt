@@ -41,6 +41,10 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlin.math.cos
@@ -73,8 +77,9 @@ fun Gauge(
         offArc = MaterialTheme.colorScheme.inversePrimary,
         onArc = MaterialTheme.colorScheme.primary,
         marks = MaterialTheme.colorScheme.inversePrimary,
+        hand = MaterialTheme.colorScheme.primary,
         markPoints = MaterialTheme.colorScheme.primary,
-        hand = MaterialTheme.colorScheme.primary
+        markPointsTexts = MaterialTheme.colorScheme.tertiary
     )
 ) {
     require(value in valueRange) { "Gauge value: $value is out of Gauge Value range $valueRange" }
@@ -83,6 +88,7 @@ fun Gauge(
     BoxWithConstraints(
         modifier = modifier.fillMaxWidth(),
         content = {
+            val textMeasurer = rememberTextMeasurer()
             val size = if (totalSize > maxWidth) maxWidth
             else if (totalSize > maxHeight) maxHeight
             else totalSize
@@ -105,7 +111,10 @@ fun Gauge(
                         numerics = numerics,
                         totalAngle = totalAngle,
                         colors = colors,
-                        size = size
+                        size = size,
+                        textMeasurer = textMeasurer,
+                        valueRange = valueRange,
+                        hasNumbers = style.hasNumbers
                     )
                     if (style.hasArcs) {
                         drawArcs(
@@ -127,12 +136,11 @@ fun Gauge(
                         ringFraction = .3f,
                         offset = center
                     )
-                    val valueDegrees =
-                        translate2(
-                            value,
-                            valueRange,
-                            numerics.startAngle.toFloat()..totalAngle.toFloat()
-                        )
+                    val valueDegrees = translate2(
+                        value,
+                        valueRange,
+                        numerics.startAngle.toFloat()..totalAngle.toFloat()
+                    )
                     val radian = Math.toRadians(valueDegrees.toDouble())
                     val cos = cos(radian).toFloat()
                     val sin = sin(radian).toFloat()
@@ -173,7 +181,10 @@ private fun DrawScope.drawMarks(
     numerics: GaugeNumerics,
     totalAngle: Int,
     colors: GaugeColors,
-    size: Dp
+    size: Dp,
+    textMeasurer: TextMeasurer,
+    valueRange: ClosedFloatingPointRange<Float>,
+    hasNumbers: Boolean
 ) {
     val startRatio = size.toPx().div(9f)
     for (degree in numerics.startAngle..totalAngle step numerics.marksStep) {
@@ -188,6 +199,10 @@ private fun DrawScope.drawMarks(
         val sin = sin(radian).toFloat()
         val x = translate(cos, -1f..1f, 0f..size.toPx())
         val y = translate(sin, -1f..1f, 0f..size.toPx())
+        val endOffset = Offset(
+            x.minus(cos.times(endRatio)),
+            y.minus(sin.times(endRatio))
+        )
         drawLine(
             color = markPointColor,
             strokeWidth = if (isStartOrEnd) width.times(4) else width,
@@ -196,11 +211,36 @@ private fun DrawScope.drawMarks(
                 x.minus(cos.times(startRatio)),
                 y.minus(sin.times(startRatio))
             ),
-            end = Offset(
-                x.minus(cos.times(endRatio)),
-                y.minus(sin.times(endRatio))
-            )
+            end = endOffset
         )
+        if (hasNumbers && isPoint) {
+            val realPointNumber = translate(
+                degree.toFloat(),
+                numerics.startAngle.toFloat()..totalAngle.toFloat(),
+                valueRange
+            ).toInt()
+            val textSizeFactor = 30f
+            val textStyle = TextStyle(
+                color = colors.markPointsTexts,
+                fontSize = size.toSp() / textSizeFactor
+            )
+            val textLayout = textMeasurer.measure("$realPointNumber", textStyle)
+            var textOffset = endOffset.minus(
+                Offset(
+                    textLayout.size.width.toFloat() / 2,
+                    textLayout.size.height.toFloat() / 2
+                )
+            )
+            textOffset = textOffset.plus(
+                Offset(-1 * textSizeFactor * cos, -1 * textSizeFactor * sin)
+            )
+            drawText(
+                textMeasurer = textMeasurer,
+                text = "$realPointNumber",
+                topLeft = textOffset,
+                style = textStyle
+            )
+        }
     }
 }
 

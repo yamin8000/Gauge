@@ -35,5 +35,6 @@ data class GaugeStyle(
     val hasArcs: Boolean = true,
     val handHasCircle: Boolean = true,
     val hasProgressiveArcAlpha: Boolean = true,
+    val hasNumbers: Boolean = true,
     val arcCap: StrokeCap = StrokeCap.Round
 )
