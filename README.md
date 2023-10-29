@@ -4,8 +4,16 @@ Gauge Composable is a fusion of classic and modern Gauges with some customizatio
 
 ## Preview (WIP)
 
+<table>
+<tr>
+<td>
 <img src="Gauge/screenshots/alpha/gauge3.png" alt="light preview" width="300"/>
+</td>
+<td>
 <img src="Gauge/screenshots/alpha/gauge3-dark.png" alt="dark preview" width="300"/>
+</td>
+</tr>
+</table>
 
 ## Compatibility
 
