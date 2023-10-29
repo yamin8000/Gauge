@@ -4,7 +4,7 @@ Gauge Composable is a fusion of classic and modern Gauges with some customizatio
 
 ## Preview (WIP)
 
-<img src="Gauge/screenshots/alpha/gauge2.png" alt="preview" width="300"/>
+<img src="Gauge/screenshots/alpha/gauge3.png" alt="preview" width="300"/>
 
 ## Compatibility
 
@@ -14,7 +14,23 @@ Gauge Composable is a fusion of classic and modern Gauges with some customizatio
 
 ## Install
 
-Check [latest](https://repo1.maven.org/maven2/com/github/yamin8000/gauge/Gauge/maven-metadata.xml) version from Maven Repository or [here](https://central.sonatype.com/artifact/com.github.yamin8000/gauge).
+Check [latest](https://repo1.maven.org/maven2/com/github/yamin8000/gauge/Gauge/maven-metadata.xml)
+version from Maven Repository
+or [here](https://central.sonatype.com/artifact/com.github.yamin8000.gauge/Gauge).
+
+### Gradle
+
+#### Gradle Kotlin DSL
+
+```kotlin
+    implementation("com.github.yamin8000.gauge:Gauge:version")
+```
+
+#### Gradle Groovy DSL
+
+```groovy
+    implementation 'com.github.yamin8000.gauge:Gauge:version'
+```
 
 ## Features
 
