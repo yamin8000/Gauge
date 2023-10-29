@@ -24,13 +24,13 @@ package com.github.yamin8000.gauge
 import androidx.compose.ui.graphics.Color
 
 data class GaugeColors(
-    val outerRing: Color,
-    val innerRing: Color,
+    val border: Color,
+    val needleRing: Color,
     val centerCircle: Color,
     val offArc: Color,
     val onArc: Color,
-    val marks: Color,
-    val hand: Color,
-    val markPoints: Color,
-    val markPointsTexts: Color
+    val smallTicks: Color,
+    val needle: Color,
+    val bigTicks: Color,
+    val bigTicksLabels: Color
 )

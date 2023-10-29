@@ -26,15 +26,24 @@ import androidx.compose.ui.graphics.StrokeCap
 /**
  * Visual style of the Gauge
  *
- * @param hasOuterRing whether to show Gauge's outer ring or not
+ * @param hasBorder whether to show Gauge's border or not
+ * @param borderWidth width of the Gauge's outer border
  * @param hasArcs whether to show Gauge's arcs or not
+ * @param needleTipHasCircle whether to show a circle in tip of the needle
+ * @param needleHasRing whether to show a border/ring in the start of the needle on Gauge's center
+ * @param needleRingWidth width of the needle's border
+ * @param hasProgressiveArcAlpha whether to progressively increase arc's alpha according to gauge value
+ * @param bigTicksHasLabels whether to show numbers/labels for big ticks
  * @param arcCap Gauge arc's [StrokeCap] type
  */
 data class GaugeStyle(
-    val hasOuterRing: Boolean = true,
+    val hasBorder: Boolean = true,
+    val borderWidth: Float = 20f,
     val hasArcs: Boolean = true,
-    val handHasCircle: Boolean = true,
+    val needleTipHasCircle: Boolean = true,
+    val needleHasRing: Boolean = true,
+    val needleRingWidth: Float = 20f,
     val hasProgressiveArcAlpha: Boolean = true,
-    val hasNumbers: Boolean = true,
+    val bigTicksHasLabels: Boolean = true,
     val arcCap: StrokeCap = StrokeCap.Round
 )

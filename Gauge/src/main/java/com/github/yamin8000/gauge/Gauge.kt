@@ -21,7 +21,6 @@
 
 package com.github.yamin8000.gauge
 
-import androidx.annotation.FloatRange
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,11 +31,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -54,7 +50,7 @@ import kotlin.math.sin
  * Gauge Composable is a fusion of classic and modern Gauges with some customization options.
  *
  * @param value current value of the gauge, this value effects Gauge's arc and Gauge's indicator (hand)
- * @param valueRange the range to bound the value
+ * @param modifier
  * @param totalSize total size of this Gauge as a Composable
  * @param numerics refer to [GaugeNumerics]
  * @param style refer to [GaugeStyle]
@@ -65,24 +61,26 @@ import kotlin.math.sin
 @Composable
 fun Gauge(
     value: Float,
-    valueRange: ClosedFloatingPointRange<Float>,
     modifier: Modifier = Modifier,
     totalSize: Dp = LocalConfiguration.current.screenWidthDp.dp,
     numerics: GaugeNumerics,
-    style: GaugeStyle = GaugeStyle(),
+    style: GaugeStyle = GaugeStyle(
+        borderWidth = totalSize.value / 20f,
+        needleRingWidth = totalSize.value / 30f
+    ),
     colors: GaugeColors = GaugeColors(
-        outerRing = MaterialTheme.colorScheme.primaryContainer,
-        innerRing = MaterialTheme.colorScheme.tertiaryContainer,
+        border = MaterialTheme.colorScheme.primaryContainer,
+        needleRing = MaterialTheme.colorScheme.tertiaryContainer,
         centerCircle = MaterialTheme.colorScheme.tertiary,
         offArc = MaterialTheme.colorScheme.inversePrimary,
         onArc = MaterialTheme.colorScheme.primary,
-        marks = MaterialTheme.colorScheme.inversePrimary,
-        hand = MaterialTheme.colorScheme.primary,
-        markPoints = MaterialTheme.colorScheme.primary,
-        markPointsTexts = MaterialTheme.colorScheme.tertiary
+        smallTicks = MaterialTheme.colorScheme.inversePrimary,
+        needle = MaterialTheme.colorScheme.primary,
+        bigTicks = MaterialTheme.colorScheme.primary,
+        bigTicksLabels = MaterialTheme.colorScheme.tertiary
     )
 ) {
-    require(value in valueRange) { "Gauge value: $value is out of Gauge Value range $valueRange" }
+    require(value in numerics.valueRange) { "Gauge value: $value is out of Gauge Value range ${numerics.valueRange}" }
     require(numerics.sweepAngle in 1..360) { "Sweep angle: ${numerics.sweepAngle} must be from 1 to 360" }
 
     BoxWithConstraints(
@@ -99,12 +97,11 @@ fun Gauge(
                     .width(size)
                     .height(size),
                 onDraw = {
-                    if (style.hasOuterRing) {
-                        drawRing(
-                            diameter = size,
-                            color = colors.outerRing,
-                            ringFraction = .05f,
-                            offset = center
+                    if (style.hasBorder) {
+                        drawCircle(
+                            color = colors.border,
+                            center = center,
+                            style = Stroke(style.borderWidth)
                         )
                     }
                     drawMarks(
@@ -113,8 +110,8 @@ fun Gauge(
                         colors = colors,
                         size = size,
                         textMeasurer = textMeasurer,
-                        valueRange = valueRange,
-                        hasNumbers = style.hasNumbers
+                        valueRange = numerics.valueRange,
+                        hasNumbers = style.bigTicksHasLabels
                     )
                     if (style.hasArcs) {
                         drawArcs(
@@ -125,20 +122,22 @@ fun Gauge(
                             offArcColor = colors.offArc,
                             numerics = numerics,
                             value = value,
-                            valueRange = valueRange,
+                            valueRange = numerics.valueRange,
                             totalAngle = totalAngle,
                             hasProgressiveAlpha = style.hasProgressiveArcAlpha
                         )
                     }
-                    drawRing(
-                        diameter = size / 10,
-                        color = colors.innerRing,
-                        ringFraction = .3f,
-                        offset = center
-                    )
+                    if (style.needleHasRing) {
+                        drawCircle(
+                            color = colors.needleRing,
+                            center = center,
+                            style = Stroke(style.needleRingWidth),
+                            radius = size.toPx() / 25
+                        )
+                    }
                     val valueDegrees = translate2(
                         value,
-                        valueRange,
+                        numerics.valueRange,
                         numerics.startAngle.toFloat()..totalAngle.toFloat()
                     )
                     val radian = Math.toRadians(valueDegrees.toDouble())
@@ -147,7 +146,7 @@ fun Gauge(
                     val x = translate(cos, -1f..1f, 0f..size.toPx())
                     val y = translate(sin, -1f..1f, 0f..size.toPx())
                     drawLine(
-                        color = colors.hand,
+                        color = colors.needle,
                         start = center,
                         strokeWidth = 10f,
                         cap = StrokeCap.Round,
@@ -156,7 +155,7 @@ fun Gauge(
                             y.minus(sin.times(size.toPx() / 10f))
                         )
                     )
-                    if (style.handHasCircle) {
+                    if (style.needleTipHasCircle) {
                         drawCircle(
                             color = colors.offArc,
                             radius = size.toPx() / 50,
@@ -194,12 +193,12 @@ private fun DrawScope.drawMarks(
             numerics.startAngle.toFloat()..totalAngle.toFloat()
         ) + numerics.startAngle
         val degreeInt = degree.toInt()
-        val isMark = value % numerics.marksStep == 0
-        val isPoint = isMark && (value % numerics.pointsStep == 0)
+        val isMark = value % numerics.smallTicksStep == 0
+        val isPoint = isMark && (value % numerics.bigTicksStep == 0)
         val isStartOrEnd = isPoint && (degreeInt == numerics.startAngle || degreeInt == totalAngle)
         val endRatio = if (isPoint) size.toPx().div(4f) else size.toPx().div(4.5f)
         val width = if (isPoint) size.div(500f).toPx() else size.div(700f).toPx()
-        val markPointColor = if (isPoint) colors.markPoints else colors.marks
+        val markPointColor = if (isPoint) colors.bigTicks else colors.smallTicks
 
         val radian = Math.toRadians(degree.toDouble())
         val cos = cos(radian).toFloat()
@@ -225,7 +224,7 @@ private fun DrawScope.drawMarks(
         if (hasNumbers && isPoint) {
             val textSizeFactor = 30f
             val textStyle = TextStyle(
-                color = colors.markPointsTexts,
+                color = colors.bigTicksLabels,
                 fontSize = size.toSp() / textSizeFactor
             )
             val textLayout = textMeasurer.measure("$value", textStyle)
@@ -297,30 +296,4 @@ private fun DrawScope.drawArcs(
         size = arcSize,
         topLeft = arcTopLeft
     )
-}
-
-internal fun DrawScope.drawRing(
-    color: Color,
-    diameter: Dp = 100.dp,
-    @FloatRange(from = 0.0, 1.0)
-    ringFraction: Float = .1f,
-    offset: Offset = Offset.Zero
-) {
-    val path = Path().apply {
-        val size = diameter.toPx()
-        addOval(Rect(0f, 0f, size, size))
-        op(
-            path1 = this,
-            path2 = Path().apply {
-                addOval(
-                    Rect(0f, 0f, size * (1 - ringFraction), size * (1 - ringFraction))
-                )
-                translate(Offset(size * ringFraction / 2, size * ringFraction / 2))
-            },
-            operation = PathOperation.Difference
-        )
-        if (offset != Offset.Zero)
-            translate(offset.copy(offset.x - size / 2, offset.y - size / 2))
-    }
-    drawPath(path, color)
 }

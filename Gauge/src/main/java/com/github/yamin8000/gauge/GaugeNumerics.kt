@@ -22,18 +22,20 @@
 package com.github.yamin8000.gauge
 
 /**
- * GaugeNumerics represent mathematical numbers that are used to create the [Gauge].
- * It's highly advised to choose [startAngle] (like 120) and [sweepAngle] (like 300) from highly composite/abundant numbers,
- * this way gauge is drawn more visually appealing.
+ * [GaugeNumerics] represent mathematical numbers that are used to visualize the [Gauge].
+ *
+ * It's advised that [bigTicksStep] being a multiple of [smallTicksStep] so Gauge's more visually appealing.
  *
  * @param startAngle Gauge's starting angle, 0 represents 3 o'clock
- * @param sweepAngle size of degrees to draw the Gauge's arc and marks clockwise relative to [startAngle]
- * @param marksStep step to draw Gauge's marks on [startAngle] to [sweepAngle] range
- * @param pointsStep point's step to draw Gauge's points (bigger marks) on [startAngle] to [sweepAngle] range
+ * @param sweepAngle size of degrees to draw the Gauge's arc and ticks clockwise relative to [startAngle]
+ * @param valueRange the range to bound the value
+ * @param smallTicksStep step to draw Gauge's small ticks on [valueRange]
+ * @param bigTicksStep step to draw Gauge's big ticks (bigger marks) on [valueRange]
  */
 data class GaugeNumerics(
     val startAngle: Int,
     val sweepAngle: Int,
-    val marksStep: Int = 2,
-    val pointsStep: Int = 10,
+    val valueRange: ClosedFloatingPointRange<Float>,
+    val smallTicksStep: Int = 2,
+    val bigTicksStep: Int = 10,
 )

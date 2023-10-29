@@ -30,7 +30,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -58,17 +57,17 @@ class MainActivity : ComponentActivity() {
                             val valueRange = 0f..220f
                             Gauge(
                                 value = value,
-                                valueRange = valueRange,
                                 totalSize = totalSize.dp,
                                 numerics = GaugeNumerics(
                                     startAngle = 120,
                                     sweepAngle = 300,
-                                    pointsStep = 20,
-                                    marksStep = 2
+                                    valueRange = valueRange,
+                                    bigTicksStep = 20,
+                                    smallTicksStep = 2
                                 ),
                                 style = GaugeStyle(
-                                    hasOuterRing = true,
-                                    handHasCircle = true
+                                    hasBorder = true,
+                                    needleTipHasCircle = true
                                 )
                             )
                             Text("width: $screenWidth")
@@ -94,12 +93,4 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
 }
