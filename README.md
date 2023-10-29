@@ -23,13 +23,13 @@ or [here](https://central.sonatype.com/artifact/com.github.yamin8000.gauge/Gauge
 #### Gradle Kotlin DSL
 
 ```kotlin
-    implementation("com.github.yamin8000.gauge:Gauge:version")
+implementation("com.github.yamin8000.gauge:Gauge:version")
 ```
 
 #### Gradle Groovy DSL
 
 ```groovy
-    implementation 'com.github.yamin8000.gauge:Gauge:version'
+implementation 'com.github.yamin8000.gauge:Gauge:version'
 ```
 
 ## Features
