@@ -187,9 +187,16 @@ private fun DrawScope.drawMarks(
     hasNumbers: Boolean
 ) {
     val startRatio = size.toPx().div(9f)
-    for (degree in numerics.startAngle..totalAngle step numerics.marksStep) {
-        val isPoint = degree % numerics.pointsStep == 0
-        val isStartOrEnd = isPoint && (degree == numerics.startAngle || degree == totalAngle)
+    for (value in valueRange.start.toInt()..valueRange.endInclusive.toInt()) {
+        val degree = translate(
+            value.toFloat(),
+            valueRange,
+            numerics.startAngle.toFloat()..totalAngle.toFloat()
+        ) + numerics.startAngle
+        val degreeInt = degree.toInt()
+        val isMark = value % numerics.marksStep == 0
+        val isPoint = isMark && (value % numerics.pointsStep == 0)
+        val isStartOrEnd = isPoint && (degreeInt == numerics.startAngle || degreeInt == totalAngle)
         val endRatio = if (isPoint) size.toPx().div(4f) else size.toPx().div(4.5f)
         val width = if (isPoint) size.div(500f).toPx() else size.div(700f).toPx()
         val markPointColor = if (isPoint) colors.markPoints else colors.marks
@@ -203,28 +210,25 @@ private fun DrawScope.drawMarks(
             x.minus(cos.times(endRatio)),
             y.minus(sin.times(endRatio))
         )
-        drawLine(
-            color = markPointColor,
-            strokeWidth = if (isStartOrEnd) width.times(4) else width,
-            cap = StrokeCap.Butt,
-            start = Offset(
-                x.minus(cos.times(startRatio)),
-                y.minus(sin.times(startRatio))
-            ),
-            end = endOffset
-        )
+        if (isMark) {
+            drawLine(
+                color = markPointColor,
+                strokeWidth = if (isStartOrEnd) width.times(4) else width,
+                cap = StrokeCap.Butt,
+                start = Offset(
+                    x.minus(cos.times(startRatio)),
+                    y.minus(sin.times(startRatio))
+                ),
+                end = endOffset
+            )
+        }
         if (hasNumbers && isPoint) {
-            val realPointNumber = translate(
-                degree.toFloat(),
-                numerics.startAngle.toFloat()..totalAngle.toFloat(),
-                valueRange
-            ).toInt()
             val textSizeFactor = 30f
             val textStyle = TextStyle(
                 color = colors.markPointsTexts,
                 fontSize = size.toSp() / textSizeFactor
             )
-            val textLayout = textMeasurer.measure("$realPointNumber", textStyle)
+            val textLayout = textMeasurer.measure("$value", textStyle)
             var textOffset = endOffset.minus(
                 Offset(
                     textLayout.size.width.toFloat() / 2,
@@ -236,7 +240,7 @@ private fun DrawScope.drawMarks(
             )
             drawText(
                 textMeasurer = textMeasurer,
-                text = "$realPointNumber",
+                text = "$value",
                 topLeft = textOffset,
                 style = textStyle
             )

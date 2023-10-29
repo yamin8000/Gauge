@@ -55,14 +55,15 @@ class MainActivity : ComponentActivity() {
                             val screenWidth = configuration.screenWidthDp.dp
                             var value by remember { mutableFloatStateOf(0f) }
                             var totalSize by remember { mutableFloatStateOf(350f) }
+                            val valueRange = 0f..220f
                             Gauge(
                                 value = value,
-                                valueRange = 0f..100f,
+                                valueRange = valueRange,
                                 totalSize = totalSize.dp,
                                 numerics = GaugeNumerics(
                                     startAngle = 120,
                                     sweepAngle = 300,
-                                    pointsStep = 30,
+                                    pointsStep = 20,
                                     marksStep = 2
                                 ),
                                 style = GaugeStyle(
@@ -74,7 +75,7 @@ class MainActivity : ComponentActivity() {
                             Text("Value: $value")
                             Slider(
                                 value = value,
-                                valueRange = 0f..100f,
+                                valueRange = valueRange,
                                 onValueChange = {
                                     value = it
                                 }
