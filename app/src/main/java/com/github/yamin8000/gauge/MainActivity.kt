@@ -35,10 +35,13 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import com.github.yamin8000.gauge.main.Gauge
 import com.github.yamin8000.gauge.main.GaugeNumerics
+import com.github.yamin8000.gauge.ui.color.GaugeArcColors
+import com.github.yamin8000.gauge.ui.style.GaugeArcStyle
 import com.github.yamin8000.gauge.ui.style.GaugeStyle
 import com.github.yamin8000.gauge.ui.theme.GaugeTheme
 
@@ -70,8 +73,28 @@ class MainActivity : ComponentActivity() {
                                 ),
                                 style = GaugeStyle(
                                     hasBorder = true,
-                                    needleTipHasCircle = true
-                                )
+                                    arcStyle = GaugeArcStyle(hasProgressiveAlpha = false)
+                                ),
+                                arcColorsProvider = { colors, gaugeValue, range ->
+                                    when (gaugeValue) {
+                                        in range.start..range.endInclusive / 4 -> GaugeArcColors(
+                                            colors.off,
+                                            Color.Red
+                                        )
+
+                                        in range.endInclusive / 4..range.endInclusive / 2 -> GaugeArcColors(
+                                            colors.off,
+                                            Color.Yellow
+                                        )
+
+                                        in range.endInclusive / 2..range.endInclusive * 3 / 4 -> GaugeArcColors(
+                                            colors.off,
+                                            Color(0xFFFF8000)
+                                        )
+
+                                        else -> GaugeArcColors(colors.off, Color.Green)
+                                    }
+                                }
                             )
                             Text("width: $screenWidth")
                             Text("Value: $value")

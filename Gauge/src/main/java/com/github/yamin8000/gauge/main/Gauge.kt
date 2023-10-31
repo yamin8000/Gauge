@@ -21,6 +21,7 @@
 
 package com.github.yamin8000.gauge.main
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -43,7 +45,6 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.github.yamin8000.gauge.ui.color.GaugeArcColors
-import com.github.yamin8000.gauge.ui.color.GaugeColors
 import com.github.yamin8000.gauge.ui.color.GaugeNeedleColors
 import com.github.yamin8000.gauge.ui.color.GaugeTicksColors
 import com.github.yamin8000.gauge.ui.style.GaugeArcStyle
@@ -60,9 +61,15 @@ import kotlin.math.sin
  * @param value current value of the gauge, this value directly affects Gauge's arc and Gauge's needle style
  * @param modifier refer to [Modifier]
  * @param totalSize total size of this Gauge as a Composable
+ * @param borderInset Gauge's inset relative to the border
  * @param numerics refer to [GaugeNumerics]
  * @param style refer to [GaugeStyle]
- * @param colors refer to [GaugeColors]
+ * @param borderColor
+ * @param centerCircleColor
+ * @param needleColors
+ * @param arcColors
+ * @param ticksColors
+ * @param ticksColorProvider a lambda for fine tune of individual tick color
  *
  * @throws IllegalArgumentException when some parameters are inconsistent with the design
  */
@@ -71,30 +78,31 @@ fun Gauge(
     value: Float,
     modifier: Modifier = Modifier,
     totalSize: Dp = LocalConfiguration.current.screenWidthDp.dp,
+    borderInset: Dp = 4.dp,
     numerics: GaugeNumerics,
     style: GaugeStyle = GaugeStyle(
-        borderWidth = totalSize.value / 20f,
+        borderWidth = totalSize.value / 30f,
         needleStyle = GaugeNeedleStyle(
             ringWidth = totalSize.value / 30f
         )
     ),
-    colors: GaugeColors = GaugeColors(
-        border = MaterialTheme.colorScheme.primaryContainer,
-        centerCircle = MaterialTheme.colorScheme.tertiary,
-        needleColors = GaugeNeedleColors(
-            needle = MaterialTheme.colorScheme.primary,
-            ring = MaterialTheme.colorScheme.tertiaryContainer
-        ),
-        arcColors = GaugeArcColors(
-            off = MaterialTheme.colorScheme.inversePrimary,
-            on = MaterialTheme.colorScheme.primary
-        ),
-        ticksColors = GaugeTicksColors(
-            smallTicks = MaterialTheme.colorScheme.inversePrimary,
-            bigTicks = MaterialTheme.colorScheme.primary,
-            bigTicksLabels = MaterialTheme.colorScheme.tertiary
-        )
-    )
+    borderColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    centerCircleColor: Color = MaterialTheme.colorScheme.tertiary,
+    needleColors: GaugeNeedleColors = GaugeNeedleColors(
+        needle = MaterialTheme.colorScheme.primary,
+        ring = MaterialTheme.colorScheme.tertiaryContainer
+    ),
+    arcColors: GaugeArcColors = GaugeArcColors(
+        off = MaterialTheme.colorScheme.inversePrimary,
+        on = MaterialTheme.colorScheme.primary
+    ),
+    ticksColors: GaugeTicksColors = GaugeTicksColors(
+        smallTicks = MaterialTheme.colorScheme.inversePrimary,
+        bigTicks = MaterialTheme.colorScheme.primary,
+        bigTicksLabels = MaterialTheme.colorScheme.tertiary
+    ),
+    ticksColorProvider: (List<Pair<Int, Color>>) -> List<Pair<Int, Color>> = { it },
+    arcColorsProvider: (GaugeArcColors, Float, ClosedFloatingPointRange<Float>) -> GaugeArcColors = { _, _,_ -> arcColors }
 ) {
     require(value in numerics.valueRange) { "Gauge value: $value is out of Gauge Value range ${numerics.valueRange}" }
     require(numerics.sweepAngle in 1..360) { "Sweep angle: ${numerics.sweepAngle} must be from 1 to 360" }
@@ -107,54 +115,59 @@ fun Gauge(
             else if (totalSize > maxHeight) maxHeight
             else totalSize
             val totalAngle = numerics.startAngle + numerics.sweepAngle
-            val marksSizeFraction = remember { .8f }
+            val arcSizeFraction = remember { .9f }
             Canvas(
                 modifier = Modifier
                     .width(size)
                     .height(size),
                 onDraw = {
+                    val borderOffset = Offset(borderInset.toPx() / 2, borderInset.toPx() / 2)
                     if (style.hasBorder) {
                         drawCircle(
-                            color = colors.border,
+                            color = borderColor,
                             center = center,
                             style = Stroke(style.borderWidth)
                         )
                     }
                     drawTicks(
+                        borderOffset = borderOffset,
                         numerics = numerics,
                         totalAngle = totalAngle,
-                        colors = colors.ticksColors,
-                        size = size,
+                        colors = ticksColors,
+                        size = size - borderInset,
                         textMeasurer = textMeasurer,
-                        valueRange = numerics.valueRange,
-                        hasNumbers = style.arcStyle.bigTicksHasLabels
+                        hasNumbers = style.arcStyle.bigTicksHasLabels,
+                        ticksColorProvider = ticksColorProvider
                     )
                     if (style.arcStyle.hasArcs) {
                         drawArcs(
-                            size = size,
+                            borderOffset = borderOffset,
+                            size = size - borderInset,
                             style = style.arcStyle,
-                            marksSizeFraction = marksSizeFraction,
-                            colors = colors.arcColors,
+                            arcSizeFraction = arcSizeFraction,
+                            colors = arcColors,
                             numerics = numerics,
                             value = value,
                             valueRange = numerics.valueRange,
-                            totalAngle = totalAngle
+                            totalAngle = totalAngle,
+                            arcColorsProvider = arcColorsProvider
                         )
                     }
                     if (style.needleStyle.hasNeedle) {
                         drawNeedle(
+                            borderOffset = borderOffset,
                             style = style.needleStyle,
-                            colors = colors,
-                            size = size,
+                            colors = needleColors,
+                            size = size - borderInset,
                             value = value,
                             numerics = numerics,
                             totalAngle = totalAngle
                         )
                     }
                     drawCircle(
-                        color = colors.centerCircle,
-                        radius = size.toPx() / 50,
-                        center = center
+                        color = centerCircleColor,
+                        radius = (size - borderInset).toPx() / 50,
+                        center = center.plus(borderOffset)
                     )
                 }
             )
@@ -163,8 +176,9 @@ fun Gauge(
 }
 
 private fun DrawScope.drawNeedle(
+    borderOffset: Offset,
     style: GaugeNeedleStyle,
-    colors: GaugeColors,
+    colors: GaugeNeedleColors,
     size: Dp,
     value: Float,
     numerics: GaugeNumerics,
@@ -172,8 +186,8 @@ private fun DrawScope.drawNeedle(
 ) {
     if (style.hasRing) {
         drawCircle(
-            color = colors.needleColors.ring,
-            center = center,
+            color = colors.ring,
+            center = center.plus(borderOffset),
             style = Stroke(style.ringWidth),
             radius = size.toPx() / 25
         )
@@ -188,51 +202,58 @@ private fun DrawScope.drawNeedle(
     val sin = sin(radian).toFloat()
     val x = translate(cos, -1f..1f, 0f..size.toPx())
     val y = translate(sin, -1f..1f, 0f..size.toPx())
+    val endOffset = Offset(
+        x.minus(cos.times(size.toPx() / 20f)),
+        y.minus(sin.times(size.toPx() / 20f))
+    ).plus(borderOffset)
     drawLine(
-        color = colors.needleColors.needle,
-        start = center,
+        color = colors.needle,
+        start = center.plus(borderOffset),
         strokeWidth = 10f,
         cap = StrokeCap.Round,
-        end = Offset(
-            x.minus(cos.times(size.toPx() / 10f)),
-            y.minus(sin.times(size.toPx() / 10f))
-        )
+        end = endOffset
     )
     if (style.tipHasCircle) {
         drawCircle(
-            color = colors.arcColors.off,
+            color = colors.needle,
             radius = size.toPx() / 50,
-            center = Offset(
-                x.minus(cos.times(size.toPx() / 10f)),
-                y.minus(sin.times(size.toPx() / 10f))
-            )
+            center = endOffset
         )
     }
 }
 
 private fun DrawScope.drawTicks(
+    borderOffset: Offset,
     numerics: GaugeNumerics,
     totalAngle: Int,
     colors: GaugeTicksColors,
     size: Dp,
     textMeasurer: TextMeasurer,
-    valueRange: ClosedFloatingPointRange<Float>,
-    hasNumbers: Boolean
+    hasNumbers: Boolean,
+    ticksColorProvider: (List<Pair<Int, Color>>) -> List<Pair<Int, Color>>
 ) {
-    val startRatio = size.toPx().div(9f)
-    for (value in valueRange.start.toInt()..valueRange.endInclusive.toInt()) {
+    val ticksColors = ticksColorProvider(
+        buildList {
+            (numerics.valueRange.start.toInt()..numerics.valueRange.endInclusive.toInt()).forEach {
+                add(it to colors.smallTicks)
+            }
+        }
+    )
+    val startRatio = size.toPx().div(40f)
+    for (value in numerics.valueRange.start.toInt()..numerics.valueRange.endInclusive.toInt()) {
         val degree = translate(
             value.toFloat(),
-            valueRange,
+            numerics.valueRange,
             numerics.startAngle.toFloat()..totalAngle.toFloat()
         ) + numerics.startAngle
         val degreeInt = degree.toInt()
-        val isMark = value % numerics.smallTicksStep == 0
-        val isPoint = isMark && (value % numerics.bigTicksStep == 0)
-        val isStartOrEnd = isPoint && (degreeInt == numerics.startAngle || degreeInt == totalAngle)
-        val endRatio = if (isPoint) size.toPx().div(4f) else size.toPx().div(4.5f)
-        val width = if (isPoint) size.div(500f).toPx() else size.div(700f).toPx()
-        val markPointColor = if (isPoint) colors.bigTicks else colors.smallTicks
+        val isSmallTick = value % numerics.smallTicksStep == 0
+        val isBigTick = isSmallTick && (value % numerics.bigTicksStep == 0)
+        val isStartOrEnd =
+            isBigTick && (degreeInt == numerics.startAngle || degreeInt == totalAngle)
+        val endRatio = if (isBigTick) size.toPx().div(6f) else size.toPx().div(7f)
+        val width = if (isBigTick) size.div(500f).toPx() else size.div(700f).toPx()
+        val tickColor = if (isBigTick) colors.bigTicks else ticksColors[value].second
 
         val radian = Math.toRadians(degree.toDouble())
         val cos = cos(radian).toFloat()
@@ -243,19 +264,19 @@ private fun DrawScope.drawTicks(
             x.minus(cos.times(endRatio)),
             y.minus(sin.times(endRatio))
         )
-        if (isMark) {
+        if (isSmallTick) {
             drawLine(
-                color = markPointColor,
+                color = tickColor,
                 strokeWidth = if (isStartOrEnd) width.times(4) else width,
                 cap = StrokeCap.Butt,
                 start = Offset(
                     x.minus(cos.times(startRatio)),
                     y.minus(sin.times(startRatio))
-                ),
-                end = endOffset
+                ).plus(borderOffset),
+                end = endOffset.plus(borderOffset)
             )
         }
-        if (hasNumbers && isPoint) {
+        if (hasNumbers && isBigTick) {
             val textSizeFactor = 30f
             val textStyle = TextStyle(
                 color = colors.bigTicksLabels,
@@ -274,7 +295,7 @@ private fun DrawScope.drawTicks(
             drawText(
                 textMeasurer = textMeasurer,
                 text = "$value",
-                topLeft = textOffset,
+                topLeft = textOffset.plus(borderOffset),
                 style = textStyle
             )
         }
@@ -282,40 +303,43 @@ private fun DrawScope.drawTicks(
 }
 
 private fun DrawScope.drawArcs(
+    borderOffset: Offset,
     size: Dp,
     style: GaugeArcStyle,
-    marksSizeFraction: Float,
+    arcSizeFraction: Float,
     colors: GaugeArcColors,
     numerics: GaugeNumerics,
     value: Float,
     valueRange: ClosedFloatingPointRange<Float>,
-    totalAngle: Int
+    totalAngle: Int,
+    arcColorsProvider: (GaugeArcColors, Float, ClosedFloatingPointRange<Float>) -> GaugeArcColors
 ) {
+    val arcColors = arcColorsProvider(colors, value, valueRange)
     val arcStroke = Stroke(
         width = size.toPx() / 15f,
         miter = 0f,
         cap = style.cap
     )
     val arcSize = Size(
-        size.times(marksSizeFraction).toPx(),
-        size.times(marksSizeFraction).toPx()
+        size.times(arcSizeFraction).toPx(),
+        size.times(arcSizeFraction).toPx()
     )
     val arcTopLeft = Offset(
-        size.times((1 - marksSizeFraction) / 2).toPx(),
-        size.times((1 - marksSizeFraction) / 2).toPx()
+        size.times((1 - arcSizeFraction) / 2).toPx(),
+        size.times((1 - arcSizeFraction) / 2).toPx()
     )
     drawArc(
-        color = colors.off,
+        color = arcColors.off,
         startAngle = numerics.startAngle.toFloat(),
         sweepAngle = numerics.sweepAngle.toFloat(),
         useCenter = false,
         style = arcStroke,
         size = arcSize,
-        topLeft = arcTopLeft
+        topLeft = arcTopLeft.plus(borderOffset)
     )
     val alpha = value / valueRange.endInclusive
     drawArc(
-        color = colors.on,
+        color = arcColors.on,
         alpha = if (style.hasProgressiveAlpha && alpha in 0f..1f) alpha else 1f,
         startAngle = numerics.startAngle.toFloat(),
         sweepAngle = translate(
@@ -326,6 +350,6 @@ private fun DrawScope.drawArcs(
         useCenter = false,
         style = arcStroke,
         size = arcSize,
-        topLeft = arcTopLeft
+        topLeft = arcTopLeft.plus(borderOffset)
     )
 }
