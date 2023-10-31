@@ -232,8 +232,7 @@ private fun DrawScope.drawTicks(
         val isStartOrEnd = isPoint && (degreeInt == numerics.startAngle || degreeInt == totalAngle)
         val endRatio = if (isPoint) size.toPx().div(4f) else size.toPx().div(4.5f)
         val width = if (isPoint) size.div(500f).toPx() else size.div(700f).toPx()
-        val markPointColor =
-            if (isPoint) colors.bigTicks else colors.smallTicks
+        val markPointColor = if (isPoint) colors.bigTicks else colors.smallTicks
 
         val radian = Math.toRadians(degree.toDouble())
         val cos = cos(radian).toFloat()
