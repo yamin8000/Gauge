@@ -21,7 +21,6 @@
 
 package com.github.yamin8000.gauge.main
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -52,15 +51,18 @@ import com.github.yamin8000.gauge.ui.style.GaugeNeedleStyle
 import com.github.yamin8000.gauge.ui.style.GaugeStyle
 import com.github.yamin8000.gauge.util.translate
 import com.github.yamin8000.gauge.util.translate2
+import java.text.DecimalFormat
 import kotlin.math.cos
 import kotlin.math.sin
 
 /**
  * Gauge Composable is a fusion of classic and modern Gauges with some customization options.
  *
- * @param value current value of the gauge, this value directly affects Gauge's arc and Gauge's needle style
+ * @param value current value of the [Gauge], this value directly affects Gauge's arc and Gauge's needle style
  * @param modifier refer to [Modifier]
- * @param totalSize total size of this Gauge as a Composable
+ * @param valueUnit unit of the Gauge's value like %, km/h or etc
+ * @param decimalFormat decimal formatter for value text
+ * @param totalSize total size of this [Gauge] as a Composable
  * @param borderInset Gauge's inset relative to the border
  * @param numerics refer to [GaugeNumerics]
  * @param style refer to [GaugeStyle]
@@ -69,7 +71,8 @@ import kotlin.math.sin
  * @param needleColors
  * @param arcColors
  * @param ticksColors
- * @param ticksColorProvider a lambda for fine tune of individual tick color
+ * @param ticksColorProvider a lambda for fine tune of individual tick's color
+ * @param arcColorsProvider a lambda for fine tune of arc colors
  *
  * @throws IllegalArgumentException when some parameters are inconsistent with the design
  */
@@ -77,6 +80,8 @@ import kotlin.math.sin
 fun Gauge(
     value: Float,
     modifier: Modifier = Modifier,
+    valueUnit: String = "",
+    decimalFormat: DecimalFormat = DecimalFormat().apply { maximumFractionDigits = 2 },
     totalSize: Dp = LocalConfiguration.current.screenWidthDp.dp,
     borderInset: Dp = 4.dp,
     numerics: GaugeNumerics,
@@ -88,6 +93,7 @@ fun Gauge(
     ),
     borderColor: Color = MaterialTheme.colorScheme.primaryContainer,
     centerCircleColor: Color = MaterialTheme.colorScheme.tertiary,
+    valueColor: Color = MaterialTheme.colorScheme.primary,
     needleColors: GaugeNeedleColors = GaugeNeedleColors(
         needle = MaterialTheme.colorScheme.primary,
         ring = MaterialTheme.colorScheme.tertiaryContainer
@@ -102,7 +108,7 @@ fun Gauge(
         bigTicksLabels = MaterialTheme.colorScheme.tertiary
     ),
     ticksColorProvider: (List<Pair<Int, Color>>) -> List<Pair<Int, Color>> = { it },
-    arcColorsProvider: (GaugeArcColors, Float, ClosedFloatingPointRange<Float>) -> GaugeArcColors = { _, _,_ -> arcColors }
+    arcColorsProvider: (GaugeArcColors, Float, ClosedFloatingPointRange<Float>) -> GaugeArcColors = { _, _, _ -> arcColors }
 ) {
     require(value in numerics.valueRange) { "Gauge value: $value is out of Gauge Value range ${numerics.valueRange}" }
     require(numerics.sweepAngle in 1..360) { "Sweep angle: ${numerics.sweepAngle} must be from 1 to 360" }
@@ -127,6 +133,15 @@ fun Gauge(
                             color = borderColor,
                             center = center,
                             style = Stroke(style.borderWidth)
+                        )
+                    }
+                    if (style.hasValueText) {
+                        drawCompatibleText(
+                            textMeasurer = textMeasurer,
+                            text = "${decimalFormat.format(value)}\n$valueUnit".trim(),
+                            topLeft = center.plus(borderOffset).plus(Offset(0f, size.toPx() / 5)),
+                            color = valueColor,
+                            totalSize = size
                         )
                     }
                     drawTicks(
@@ -351,5 +366,32 @@ private fun DrawScope.drawArcs(
         style = arcStroke,
         size = arcSize,
         topLeft = arcTopLeft.plus(borderOffset)
+    )
+}
+
+private fun DrawScope.drawCompatibleText(
+    text: String,
+    color: Color,
+    totalSize: Dp,
+    textMeasurer: TextMeasurer,
+    topLeft: Offset
+) {
+    val textSizeFactor = 30f
+    val textStyle = TextStyle(
+        color = color,
+        fontSize = totalSize.toSp() / textSizeFactor
+    )
+    val textLayout = textMeasurer.measure(text, textStyle)
+    val textOffset = topLeft.minus(
+        Offset(
+            textLayout.size.width.toFloat() / 2,
+            textLayout.size.height.toFloat() / 2
+        )
+    )
+    drawText(
+        textMeasurer = textMeasurer,
+        text = text,
+        topLeft = textOffset,
+        style = textStyle
     )
 }

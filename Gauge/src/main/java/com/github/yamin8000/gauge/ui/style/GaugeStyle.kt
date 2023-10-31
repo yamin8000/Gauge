@@ -25,12 +25,14 @@ package com.github.yamin8000.gauge.ui.style
  * Visual style of the Gauge
  *
  * @param hasBorder whether to show Gauge's border or not
+ * @param hasValueText whether to show Gauge's value as a text
  * @param borderWidth width of the Gauge's outer border
  * @param arcStyle visual style of Gauge's arc
  * @param needleStyle visual style of Gauge's needle
  */
 data class GaugeStyle(
     val hasBorder: Boolean = true,
+    val hasValueText: Boolean = true,
     val borderWidth: Float = 20f,
     val arcStyle: GaugeArcStyle = GaugeArcStyle(),
     val needleStyle: GaugeNeedleStyle = GaugeNeedleStyle()
