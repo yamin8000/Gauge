@@ -19,7 +19,7 @@
  *     along with Gauge.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.github.yamin8000.gauge
+package com.github.yamin8000.gauge.main
 
 /**
  * [GaugeNumerics] represent mathematical numbers that are used to visualize the [Gauge].

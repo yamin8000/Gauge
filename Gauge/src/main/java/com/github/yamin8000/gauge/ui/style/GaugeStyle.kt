@@ -1,7 +1,7 @@
 /*
  *     Gauge/Gauge.Gauge.main
- *     GaugeStyle.kt Copyrighted by Yamin Siahmargooei at 2023/10/26
- *     GaugeStyle.kt Last modified copyright at 2023/10/26
+ *     GaugeStyle.kt Copyrighted by Yamin Siahmargooei at 2023/10/31
+ *     GaugeStyle.kt Last modified copyright at 2023/10/31
  *     This file is part of Gauge/Gauge.Gauge.main.
  *     Copyright (C) 2023  Yamin Siahmargooei
  *
@@ -19,31 +19,19 @@
  *     along with Gauge.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.github.yamin8000.gauge
-
-import androidx.compose.ui.graphics.StrokeCap
+package com.github.yamin8000.gauge.ui.style
 
 /**
  * Visual style of the Gauge
  *
  * @param hasBorder whether to show Gauge's border or not
  * @param borderWidth width of the Gauge's outer border
- * @param hasArcs whether to show Gauge's arcs or not
- * @param needleTipHasCircle whether to show a circle in tip of the needle
- * @param needleHasRing whether to show a border/ring in the start of the needle on Gauge's center
- * @param needleRingWidth width of the needle's border
- * @param hasProgressiveArcAlpha whether to progressively increase arc's alpha according to gauge value
- * @param bigTicksHasLabels whether to show numbers/labels for big ticks
- * @param arcCap Gauge arc's [StrokeCap] type
+ * @param arcStyle visual style of Gauge's arc
+ * @param needleStyle visual style of Gauge's needle
  */
 data class GaugeStyle(
     val hasBorder: Boolean = true,
     val borderWidth: Float = 20f,
-    val hasArcs: Boolean = true,
-    val needleTipHasCircle: Boolean = true,
-    val needleHasRing: Boolean = true,
-    val needleRingWidth: Float = 20f,
-    val hasProgressiveArcAlpha: Boolean = true,
-    val bigTicksHasLabels: Boolean = true,
-    val arcCap: StrokeCap = StrokeCap.Round
+    val arcStyle: GaugeArcStyle = GaugeArcStyle(),
+    val needleStyle: GaugeNeedleStyle = GaugeNeedleStyle()
 )
