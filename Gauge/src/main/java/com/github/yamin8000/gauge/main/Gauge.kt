@@ -23,9 +23,7 @@ package com.github.yamin8000.gauge.main
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -114,7 +112,7 @@ fun Gauge(
     require(numerics.sweepAngle in 1..360) { "Sweep angle: ${numerics.sweepAngle} must be from 1 to 360" }
 
     BoxWithConstraints(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier,
         content = {
             val textMeasurer = rememberTextMeasurer()
             val size = if (totalSize > maxWidth) maxWidth
@@ -123,9 +121,7 @@ fun Gauge(
             val totalAngle = numerics.startAngle + numerics.sweepAngle
             val arcSizeFraction = remember { .9f }
             Canvas(
-                modifier = Modifier
-                    .width(size)
-                    .height(size),
+                modifier = Modifier.size(size),
                 onDraw = {
                     val borderOffset = Offset(borderInset.toPx() / 2, borderInset.toPx() / 2)
                     if (style.hasBorder) {
@@ -139,7 +135,7 @@ fun Gauge(
                         drawCompatibleText(
                             textMeasurer = textMeasurer,
                             text = "${decimalFormat.format(value)}\n$valueUnit".trim(),
-                            topLeft = center.plus(borderOffset).plus(Offset(0f, size.toPx() / 5)),
+                            topLeft = center.plus(Offset(0f, size.toPx() / 5)),
                             color = valueColor,
                             totalSize = size
                         )
@@ -182,7 +178,7 @@ fun Gauge(
                     drawCircle(
                         color = centerCircleColor,
                         radius = (size - borderInset).toPx() / 50,
-                        center = center.plus(borderOffset)
+                        center = center
                     )
                 }
             )
@@ -202,7 +198,7 @@ private fun DrawScope.drawNeedle(
     if (style.hasRing) {
         drawCircle(
             color = colors.ring,
-            center = center.plus(borderOffset),
+            center = center,
             style = Stroke(style.ringWidth),
             radius = size.toPx() / 25
         )
@@ -223,7 +219,7 @@ private fun DrawScope.drawNeedle(
     ).plus(borderOffset)
     drawLine(
         color = colors.needle,
-        start = center.plus(borderOffset),
+        start = center,
         strokeWidth = 10f,
         cap = StrokeCap.Round,
         end = endOffset
