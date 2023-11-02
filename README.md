@@ -1,16 +1,16 @@
-# Gauge (WIP)
+# Gauge
 
 Gauge Composable is a fusion of classic and modern Gauges with some customization options.
 
-## Preview (WIP)
+## Preview
 
 <table>
 <tr>
 <td>
-<img src="Gauge/screenshots/alpha/gauge3.png" alt="light preview" width="300"/>
+<img src="Gauge/screenshots/gauge-light.png" alt="light preview" width="300"/>
 </td>
 <td>
-<img src="Gauge/screenshots/alpha/gauge3-dark.png" alt="dark preview" width="300"/>
+<img src="Gauge/screenshots/gauge-dark.png" alt="dark preview" width="300"/>
 </td>
 </tr>
 </table>
@@ -157,6 +157,8 @@ implementation 'com.github.yamin8000.gauge:Gauge:version'
 ```
 
 ## Features
+
+- Customization of most elements
 
 ## License
 
