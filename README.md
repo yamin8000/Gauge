@@ -15,6 +15,10 @@ Gauge Composable is a fusion of classic and modern Gauges with some customizatio
 </tr>
 </table>
 
+### Video
+
+https://github.com/yamin8000/Gauge/assets/5001708/a9996ce0-d862-45f2-82f1-e5c740dae802
+
 ## Compatibility
 
 **SDK24+** or **Android 7.0**+
