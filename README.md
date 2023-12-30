@@ -4,6 +4,8 @@ Gauge Composable is a fusion of classic and modern Gauges with some customizatio
 
 ## Preview
 
+<a href="https://jetc.dev/issues/195.html#github-yamin8000--gauge"><img src="https://img.shields.io/badge/As_Seen_In-jetc.dev_Newsletter_Issue_%23195-blue?logo=Jetpack+Compose&amp;logoColor=white" alt="As Seen In - jetc.dev Newsletter Issue #195"></a>
+
 <table>
 <tr>
 <td>
