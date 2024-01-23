@@ -20,7 +20,7 @@
  */
 
 private val artifact = "com.github.yamin8000.gauge"
-private val version = "1.0.1"
+private val version = "1.0.2"
 
 plugins {
     id("com.android.library")
@@ -74,9 +74,7 @@ android {
 dependencies {
     implementation(platform("androidx.compose:compose-bom:2023.10.01"))
     implementation("androidx.compose.material3:material3")
-//    implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.ui:ui")
-//    implementation("androidx.compose.material3:material3-window-size-class")
     implementation("androidx.compose.ui:ui-tooling-preview")
     debugImplementation("androidx.compose.ui:ui-tooling")
 }

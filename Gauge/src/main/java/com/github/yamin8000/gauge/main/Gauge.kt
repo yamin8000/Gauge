@@ -21,8 +21,10 @@
 
 package com.github.yamin8000.gauge.main
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -103,7 +105,7 @@ fun Gauge(
     ticksColors: GaugeTicksColors = GaugeTicksColors(
         smallTicks = MaterialTheme.colorScheme.inversePrimary,
         bigTicks = MaterialTheme.colorScheme.primary,
-        bigTicksLabels = MaterialTheme.colorScheme.tertiary
+        bigTicksLabels = MaterialTheme.colorScheme.primary
     ),
     ticksColorProvider: (List<Pair<Int, Color>>) -> List<Pair<Int, Color>> = { it },
     arcColorsProvider: (GaugeArcColors, Float, ClosedFloatingPointRange<Float>) -> GaugeArcColors = { _, _, _ -> arcColors }
@@ -112,7 +114,7 @@ fun Gauge(
     require(numerics.sweepAngle in 1..360) { "Sweep angle: ${numerics.sweepAngle} must be from 1 to 360" }
 
     BoxWithConstraints(
-        modifier = modifier,
+        modifier = modifier.padding(8.dp),
         content = {
             val textMeasurer = rememberTextMeasurer()
             val size = if (totalSize > maxWidth) maxWidth
@@ -134,8 +136,15 @@ fun Gauge(
                     if (style.hasValueText) {
                         drawCompatibleText(
                             textMeasurer = textMeasurer,
-                            text = "${decimalFormat.format(value)}\n$valueUnit".trim(),
-                            topLeft = center.plus(Offset(0f, size.toPx() / 5)),
+                            text = decimalFormat.format(value).trim(),
+                            topLeft = center.plus(Offset(0f, size.toPx() / 12)),
+                            color = valueColor,
+                            totalSize = size
+                        )
+                        drawCompatibleText(
+                            textMeasurer = textMeasurer,
+                            text = valueUnit.trim(),
+                            topLeft = center.plus(Offset(0f, size.toPx() / 7)),
                             color = valueColor,
                             totalSize = size
                         )
@@ -262,7 +271,7 @@ private fun DrawScope.drawTicks(
         val isBigTick = isSmallTick && (value % numerics.bigTicksStep == 0)
         val isStartOrEnd =
             isBigTick && (degreeInt == numerics.startAngle || degreeInt == totalAngle)
-        val endRatio = if (isBigTick) size.toPx().div(6f) else size.toPx().div(7f)
+        val endRatio = if (isBigTick) size.toPx().div(5f) else size.toPx().div(6f)
         val width = if (isBigTick) size.div(500f).toPx() else size.div(700f).toPx()
         val tickColor = if (isBigTick) colors.bigTicks else ticksColors[value].second
 
@@ -288,7 +297,7 @@ private fun DrawScope.drawTicks(
             )
         }
         if (hasNumbers && isBigTick) {
-            val textSizeFactor = 30f
+            val textSizeFactor = 20f
             val textStyle = TextStyle(
                 color = colors.bigTicksLabels,
                 fontSize = size.toSp() / textSizeFactor
@@ -301,7 +310,7 @@ private fun DrawScope.drawTicks(
                 )
             )
             textOffset = textOffset.plus(
-                Offset(-1 * textSizeFactor * cos, -1 * textSizeFactor * sin)
+                Offset(-1f * textSizeFactor * cos, -1f * textSizeFactor * sin)
             )
             drawText(
                 textMeasurer = textMeasurer,
@@ -372,7 +381,7 @@ private fun DrawScope.drawCompatibleText(
     textMeasurer: TextMeasurer,
     topLeft: Offset
 ) {
-    val textSizeFactor = 30f
+    val textSizeFactor = 20f
     val textStyle = TextStyle(
         color = color,
         fontSize = totalSize.toSp() / textSizeFactor
