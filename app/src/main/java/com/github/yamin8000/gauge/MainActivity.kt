@@ -62,9 +62,9 @@ class MainActivity : ComponentActivity() {
                         ) {
                             val configuration = LocalConfiguration.current
                             val screenWidth = configuration.screenWidthDp.dp
-                            var value by remember { mutableFloatStateOf(0f) }
+                            var value by remember { mutableFloatStateOf(15f) }
                             var totalSize by remember { mutableFloatStateOf(350f) }
-                            val valueRange = 0f..220f
+                            val valueRange = 10f..20f
                             Gauge(
                                 value = value,
                                 totalSize = totalSize.dp,
@@ -72,8 +72,8 @@ class MainActivity : ComponentActivity() {
                                     startAngle = 120,
                                     sweepAngle = 300,
                                     valueRange = valueRange,
-                                    bigTicksStep = 20,
-                                    smallTicksStep = 2
+                                    bigTicksStep = 2,
+                                    smallTicksStep = 1
                                 ),
                                 style = GaugeStyle(
                                     hasBorder = true,

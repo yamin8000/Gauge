@@ -20,7 +20,7 @@
  */
 
 private val artifact = "com.github.yamin8000.gauge"
-private val version = "1.0.2"
+private val version = "1.0.3"
 
 plugins {
     id("com.android.library")
@@ -61,7 +61,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.3"
+        kotlinCompilerExtensionVersion = "1.5.12"
     }
 
     packaging {
@@ -72,7 +72,7 @@ android {
 }
 
 dependencies {
-    implementation(platform("androidx.compose:compose-bom:2023.10.01"))
+    implementation(platform("androidx.compose:compose-bom:2024.04.01"))
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
@@ -80,7 +80,7 @@ dependencies {
 }
 
 mavenPublishing {
-    publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.S01)
+    publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.S01, true)
     signAllPublications()
 
     coordinates(artifact, "Gauge", version)

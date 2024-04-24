@@ -21,7 +21,6 @@
 
 package com.github.yamin8000.gauge.main
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.padding
@@ -56,9 +55,11 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 /**
- * Gauge Composable is a fusion of classic and modern Gauges with some customization options.
+ * Gauge Composable is a fusion of classic and modern Gauges with some
+ * customization options.
  *
- * @param value current value of the [Gauge], this value directly affects Gauge's arc and Gauge's needle style
+ * @param value current value of the [Gauge], this value directly affects
+ *     Gauge's arc and Gauge's needle style
  * @param modifier refer to [Modifier]
  * @param valueUnit unit of the Gauge's value like %, km/h or etc
  * @param decimalFormat decimal formatter for value text
@@ -71,10 +72,11 @@ import kotlin.math.sin
  * @param needleColors
  * @param arcColors
  * @param ticksColors
- * @param ticksColorProvider a lambda for fine tune of individual tick's color
+ * @param ticksColorProvider a lambda for fine tune of individual tick's
+ *     color
  * @param arcColorsProvider a lambda for fine tune of arc colors
- *
- * @throws IllegalArgumentException when some parameters are inconsistent with the design
+ * @throws IllegalArgumentException when some parameters are inconsistent
+ *     with the design
  */
 @Composable
 fun Gauge(
@@ -137,7 +139,7 @@ fun Gauge(
                         drawCompatibleText(
                             textMeasurer = textMeasurer,
                             text = decimalFormat.format(value).trim(),
-                            topLeft = center.plus(Offset(0f, size.toPx() / 12)),
+                            topLeft = center.plus(Offset(0f, size.toPx() / 8)),
                             color = valueColor,
                             totalSize = size
                         )
@@ -271,19 +273,27 @@ private fun DrawScope.drawTicks(
         val isBigTick = isSmallTick && (value % numerics.bigTicksStep == 0)
         val isStartOrEnd =
             isBigTick && (degreeInt == numerics.startAngle || degreeInt == totalAngle)
-        val endRatio = if (isBigTick) size.toPx().div(5f) else size.toPx().div(6f)
+        val tickEndRatio = if (isBigTick) size.toPx().div(5f) else size.toPx().div(6f)
         val width = if (isBigTick) size.div(500f).toPx() else size.div(700f).toPx()
-        val tickColor = if (isBigTick) colors.bigTicks else ticksColors[value].second
+        val tickColor = if (isBigTick) colors.bigTicks
+        else ticksColors[value - numerics.valueRange.start.toInt()].second
 
         val radian = Math.toRadians(degree.toDouble())
         val cos = cos(radian).toFloat()
         val sin = sin(radian).toFloat()
         val x = translate(cos, -1f..1f, 0f..size.toPx())
         val y = translate(sin, -1f..1f, 0f..size.toPx())
-        val endOffset = Offset(
-            x.minus(cos.times(endRatio)),
-            y.minus(sin.times(endRatio))
+        val tickEndOffset = Offset(
+            x.minus(cos.times(tickEndRatio)),
+            y.minus(sin.times(tickEndRatio))
         )
+
+        val textEndRatio = size.toPx().div(4.25f)
+        var textOffset = Offset(
+            x.minus(cos.times(textEndRatio)),
+            y.minus(sin.times(textEndRatio))
+        )
+
         if (isSmallTick) {
             drawLine(
                 color = tickColor,
@@ -293,17 +303,17 @@ private fun DrawScope.drawTicks(
                     x.minus(cos.times(startRatio)),
                     y.minus(sin.times(startRatio))
                 ).plus(borderOffset),
-                end = endOffset.plus(borderOffset)
+                end = tickEndOffset.plus(borderOffset)
             )
         }
         if (hasNumbers && isBigTick) {
-            val textSizeFactor = 20f
+            val textSizeFactor = 15f
             val textStyle = TextStyle(
                 color = colors.bigTicksLabels,
                 fontSize = size.toSp() / textSizeFactor
             )
             val textLayout = textMeasurer.measure("$value", textStyle)
-            var textOffset = endOffset.minus(
+            textOffset = textOffset.minus(
                 Offset(
                     textLayout.size.width.toFloat() / 2,
                     textLayout.size.height.toFloat() / 2
