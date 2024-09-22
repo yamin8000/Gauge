@@ -64,6 +64,7 @@ class MainActivity : ComponentActivity() {
                             val screenWidth = configuration.screenWidthDp.dp
                             var value by remember { mutableFloatStateOf(15f) }
                             var totalSize by remember { mutableFloatStateOf(350f) }
+                            var strokeWidth by remember { mutableFloatStateOf(35f) }
                             val valueRange = 10f..20f
                             Gauge(
                                 value = value,
@@ -77,7 +78,7 @@ class MainActivity : ComponentActivity() {
                                 ),
                                 style = GaugeStyle(
                                     hasBorder = true,
-                                    arcStyle = GaugeArcStyle(hasProgressiveAlpha = false)
+                                    arcStyle = GaugeArcStyle(hasProgressiveAlpha = false, strokeWidth = strokeWidth)
                                 ),
                                 arcColorsProvider = { colors, gaugeValue, range ->
                                     when (gaugeValue) {
@@ -115,6 +116,15 @@ class MainActivity : ComponentActivity() {
                                 valueRange = 0f..500f,
                                 onValueChange = {
                                     totalSize = it
+                                }
+                            )
+
+                            Text("Arc Stroke Width: $totalSize")
+                            Slider(
+                                value = strokeWidth,
+                                valueRange = 10f..60f,
+                                onValueChange = {
+                                    strokeWidth = it
                                 }
                             )
                         }

@@ -345,8 +345,11 @@ private fun DrawScope.drawArcs(
     arcColorsProvider: (GaugeArcColors, Float, ClosedFloatingPointRange<Float>) -> GaugeArcColors
 ) {
     val arcColors = arcColorsProvider(colors, value, valueRange)
+
+    val strokeWidth = style.strokeWidth ?: (size.toPx() / 15f)
+
     val arcStroke = Stroke(
-        width = size.toPx() / 15f,
+        width = strokeWidth,
         miter = 0f,
         cap = style.cap
     )
