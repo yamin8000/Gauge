@@ -30,10 +30,12 @@ import androidx.compose.ui.graphics.StrokeCap
  * @param hasProgressiveAlpha whether to progressively increase arc's alpha according to gauge value
  * @param bigTicksHasLabels whether to show numbers/labels for big ticks
  * @param cap Gauge arc's [StrokeCap] type
+ * @param strokeWidth Arc's stroke width. If null then it will be calculated automatically
  */
 data class GaugeArcStyle(
     val hasArcs: Boolean = true,
     val hasProgressiveAlpha: Boolean = true,
     val bigTicksHasLabels: Boolean = true,
     val cap: StrokeCap = StrokeCap.Round,
+    val strokeWidth: Float? = null
 )

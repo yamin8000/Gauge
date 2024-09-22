@@ -59,7 +59,7 @@ import kotlin.math.sin
  * customization options.
  *
  * @param value current value of the [Gauge], this value directly affects
- *     Gauge's arc and Gauge's needle style
+ *    Gauge's arc and Gauge's needle style
  * @param modifier refer to [Modifier]
  * @param valueUnit unit of the Gauge's value like %, km/h or etc
  * @param decimalFormat decimal formatter for value text
@@ -73,10 +73,10 @@ import kotlin.math.sin
  * @param arcColors
  * @param ticksColors
  * @param ticksColorProvider a lambda for fine tune of individual tick's
- *     color
+ *    color
  * @param arcColorsProvider a lambda for fine tune of arc colors
  * @throws IllegalArgumentException when some parameters are inconsistent
- *     with the design
+ *    with the design
  */
 @Composable
 fun Gauge(
@@ -345,8 +345,13 @@ private fun DrawScope.drawArcs(
     arcColorsProvider: (GaugeArcColors, Float, ClosedFloatingPointRange<Float>) -> GaugeArcColors
 ) {
     val arcColors = arcColorsProvider(colors, value, valueRange)
+
+    val strokeWidth = if (style.strokeWidth != null) {
+        if (style.strokeWidth < size.toPx() / 15f) style.strokeWidth else size.toPx() / 15f
+    } else size.toPx() / 15f
+
     val arcStroke = Stroke(
-        width = size.toPx() / 15f,
+        width = strokeWidth,
         miter = 0f,
         cap = style.cap
     )
