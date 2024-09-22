@@ -20,7 +20,7 @@
  */
 
 private val artifact = "com.github.yamin8000.gauge"
-private val version = "1.0.3"
+private val version = "1.0.4"
 
 plugins {
     id("com.android.library")
