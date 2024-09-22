@@ -119,7 +119,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
 
-                            Text("Arc Stroke Width: $totalSize")
+                            Text("Arc Stroke Width: $strokeWidth")
                             Slider(
                                 value = strokeWidth,
                                 valueRange = 10f..60f,
