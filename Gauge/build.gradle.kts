@@ -19,6 +19,8 @@
  *     along with Gauge.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 private val artifact = "com.github.yamin8000.gauge"
 private val version = "1.0.4"
 
@@ -43,8 +45,10 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
+    kotlin {
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_17
+        }
     }
 
     buildFeatures {
@@ -59,15 +63,15 @@ android {
 }
 
 dependencies {
-    implementation(platform("androidx.compose:compose-bom:2025.10.01"))
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    debugImplementation("androidx.compose.ui:ui-tooling")
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    debugImplementation(libs.androidx.compose.ui.tooling)
 }
 
 mavenPublishing {
-    publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.S01, true)
+    publishToMavenCentral(automaticRelease = true)
     signAllPublications()
 
     coordinates(artifact, "Gauge", version)
@@ -88,6 +92,7 @@ mavenPublishing {
             developer {
                 id.set("yamin8000")
                 name.set("Yamin Siahmargooei")
+                email.set("me@yamins.ir")
                 url.set("https://github.com/yamin8000")
             }
         }
