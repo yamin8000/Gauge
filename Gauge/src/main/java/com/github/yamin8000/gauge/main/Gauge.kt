@@ -23,9 +23,9 @@ package com.github.yamin8000.gauge.main
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -35,7 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -43,6 +43,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.github.yamin8000.gauge.ui.color.GaugeArcColors
+import com.github.yamin8000.gauge.ui.color.GaugeColors
 import com.github.yamin8000.gauge.ui.color.GaugeNeedleColors
 import com.github.yamin8000.gauge.ui.color.GaugeTicksColors
 import com.github.yamin8000.gauge.ui.style.GaugeArcStyle
@@ -52,6 +53,7 @@ import com.github.yamin8000.gauge.util.translate
 import com.github.yamin8000.gauge.util.translate2
 import java.text.DecimalFormat
 import kotlin.math.cos
+import kotlin.math.max
 import kotlin.math.sin
 
 /**
@@ -63,16 +65,9 @@ import kotlin.math.sin
  * @param modifier refer to [Modifier]
  * @param valueUnit unit of the Gauge's value like %, km/h or etc
  * @param decimalFormat decimal formatter for value text
- * @param totalSize total size of this [Gauge] as a Composable
- * @param borderInset Gauge's inset relative to the border
  * @param numerics refer to [GaugeNumerics]
  * @param style refer to [GaugeStyle]
- * @param borderColor
- * @param centerCircleColor
- * @param needleColors
- * @param arcColors
- * @param ticksColors
- * @param ticksColorProvider a lambda for fine tune of individual tick's
+ * @param ticksColorProvider a lambda for fine tuning of individual tick's
  *    color
  * @param arcColorsProvider a lambda for fine tune of arc colors
  * @throws IllegalArgumentException when some parameters are inconsistent
@@ -84,55 +79,37 @@ fun Gauge(
     modifier: Modifier = Modifier,
     valueUnit: String = "",
     decimalFormat: DecimalFormat = DecimalFormat().apply { maximumFractionDigits = 2 },
-    totalSize: Dp = LocalConfiguration.current.screenWidthDp.dp,
-    borderInset: Dp = 4.dp,
     numerics: GaugeNumerics,
-    style: GaugeStyle = GaugeStyle(
-        borderWidth = totalSize.value / 30f,
-        needleStyle = GaugeNeedleStyle(
-            ringWidth = totalSize.value / 30f
-        )
-    ),
-    borderColor: Color = MaterialTheme.colorScheme.primaryContainer,
-    centerCircleColor: Color = MaterialTheme.colorScheme.tertiary,
-    valueColor: Color = MaterialTheme.colorScheme.primary,
-    needleColors: GaugeNeedleColors = GaugeNeedleColors(
-        needle = MaterialTheme.colorScheme.primary,
-        ring = MaterialTheme.colorScheme.tertiaryContainer
-    ),
-    arcColors: GaugeArcColors = GaugeArcColors(
-        off = MaterialTheme.colorScheme.inversePrimary,
-        on = MaterialTheme.colorScheme.primary
-    ),
-    ticksColors: GaugeTicksColors = GaugeTicksColors(
-        smallTicks = MaterialTheme.colorScheme.inversePrimary,
-        bigTicks = MaterialTheme.colorScheme.primary,
-        bigTicksLabels = MaterialTheme.colorScheme.primary
-    ),
+    style: GaugeStyle = GaugeStyle(),
+    colors: GaugeColors = GaugeColors.defaultColors(),
     ticksColorProvider: (List<Pair<Int, Color>>) -> List<Pair<Int, Color>> = { it },
-    arcColorsProvider: (GaugeArcColors, Float, ClosedFloatingPointRange<Float>) -> GaugeArcColors = { _, _, _ -> arcColors }
+    arcColorsProvider: (GaugeArcColors, Float, ClosedFloatingPointRange<Float>) -> GaugeArcColors = { _, _, _ -> colors.arc }
 ) {
     require(value in numerics.valueRange) { "Gauge value: $value is out of Gauge Value range ${numerics.valueRange}" }
     require(numerics.sweepAngle in 1..360) { "Sweep angle: ${numerics.sweepAngle} must be from 1 to 360" }
 
     BoxWithConstraints(
-        modifier = modifier.padding(8.dp),
+        modifier = modifier
+            .padding(8.dp)
+            .aspectRatio(1f),
         content = {
             val textMeasurer = rememberTextMeasurer()
-            val size = if (totalSize > maxWidth) maxWidth
-            else if (totalSize > maxHeight) maxHeight
-            else totalSize
+            val density = LocalDensity.current
+            val size = with(density) { max(maxWidth.toPx(), maxHeight.toPx()).toDp() }
             val totalAngle = numerics.startAngle + numerics.sweepAngle
             val arcSizeFraction = remember { .9f }
+
             Canvas(
                 modifier = Modifier.size(size),
                 onDraw = {
-                    val borderOffset = Offset(borderInset.toPx() / 2, borderInset.toPx() / 2)
+                    val safeSize = this@Canvas.size.maxDimension - style.borderWidth
+                    val safeOffset = Offset(style.borderWidth / 2f, style.borderWidth / 2f)
                     if (style.hasBorder) {
                         drawCircle(
-                            color = borderColor,
+                            color = colors.border,
                             center = center,
-                            style = Stroke(style.borderWidth)
+                            style = Stroke(style.borderWidth),
+                            radius = safeSize / 2f
                         )
                     }
                     if (style.hasValueText) {
@@ -140,34 +117,34 @@ fun Gauge(
                             textMeasurer = textMeasurer,
                             text = decimalFormat.format(value).trim(),
                             topLeft = center.plus(Offset(0f, size.toPx() / 8)),
-                            color = valueColor,
-                            totalSize = size
+                            color = colors.value,
+                            totalSize = safeSize.toDp()
                         )
                         drawCompatibleText(
                             textMeasurer = textMeasurer,
                             text = valueUnit.trim(),
                             topLeft = center.plus(Offset(0f, size.toPx() / 7)),
-                            color = valueColor,
-                            totalSize = size
+                            color = colors.value,
+                            totalSize = safeSize.toDp()
                         )
                     }
                     drawTicks(
-                        borderOffset = borderOffset,
+                        offset = safeOffset,
                         numerics = numerics,
                         totalAngle = totalAngle,
-                        colors = ticksColors,
-                        size = size - borderInset,
+                        colors = colors.ticks,
+                        size = safeSize.toDp(),
                         textMeasurer = textMeasurer,
                         hasNumbers = style.arcStyle.bigTicksHasLabels,
                         ticksColorProvider = ticksColorProvider
                     )
                     if (style.arcStyle.hasArcs) {
                         drawArcs(
-                            borderOffset = borderOffset,
-                            size = size - borderInset,
+                            offset = safeOffset,
+                            size = safeSize.toDp(),
                             style = style.arcStyle,
                             arcSizeFraction = arcSizeFraction,
-                            colors = arcColors,
+                            colors = colors.arc,
                             numerics = numerics,
                             value = value,
                             valueRange = numerics.valueRange,
@@ -177,18 +154,18 @@ fun Gauge(
                     }
                     if (style.needleStyle.hasNeedle) {
                         drawNeedle(
-                            borderOffset = borderOffset,
+                            offset = safeOffset,
                             style = style.needleStyle,
-                            colors = needleColors,
-                            size = size - borderInset,
+                            colors = colors.needle,
+                            size = safeSize.toDp(),
                             value = value,
                             numerics = numerics,
                             totalAngle = totalAngle
                         )
                     }
                     drawCircle(
-                        color = centerCircleColor,
-                        radius = (size - borderInset).toPx() / 50,
+                        color = colors.centerCircle,
+                        radius = safeSize / 50,
                         center = center
                     )
                 }
@@ -198,7 +175,7 @@ fun Gauge(
 }
 
 private fun DrawScope.drawNeedle(
-    borderOffset: Offset,
+    offset: Offset,
     style: GaugeNeedleStyle,
     colors: GaugeNeedleColors,
     size: Dp,
@@ -227,7 +204,7 @@ private fun DrawScope.drawNeedle(
     val endOffset = Offset(
         x.minus(cos.times(size.toPx() / 20f)),
         y.minus(sin.times(size.toPx() / 20f))
-    ).plus(borderOffset)
+    ).plus(offset)
     drawLine(
         color = colors.needle,
         start = center,
@@ -245,7 +222,7 @@ private fun DrawScope.drawNeedle(
 }
 
 private fun DrawScope.drawTicks(
-    borderOffset: Offset,
+    offset: Offset,
     numerics: GaugeNumerics,
     totalAngle: Int,
     colors: GaugeTicksColors,
@@ -288,12 +265,6 @@ private fun DrawScope.drawTicks(
             y.minus(sin.times(tickEndRatio))
         )
 
-        val textEndRatio = size.toPx().div(4.25f)
-        var textOffset = Offset(
-            x.minus(cos.times(textEndRatio)),
-            y.minus(sin.times(textEndRatio))
-        )
-
         if (isSmallTick) {
             drawLine(
                 color = tickColor,
@@ -302,8 +273,8 @@ private fun DrawScope.drawTicks(
                 start = Offset(
                     x.minus(cos.times(startRatio)),
                     y.minus(sin.times(startRatio))
-                ).plus(borderOffset),
-                end = tickEndOffset.plus(borderOffset)
+                ).plus(offset),
+                end = tickEndOffset.plus(offset)
             )
         }
         if (hasNumbers && isBigTick) {
@@ -313,6 +284,11 @@ private fun DrawScope.drawTicks(
                 fontSize = size.toSp() / textSizeFactor
             )
             val textLayout = textMeasurer.measure("$value", textStyle)
+            val textEndRatio = size.toPx().div(4.25f)
+            var textOffset = Offset(
+                x.minus(cos.times(textEndRatio)),
+                y.minus(sin.times(textEndRatio))
+            )
             textOffset = textOffset.minus(
                 Offset(
                     textLayout.size.width.toFloat() / 2,
@@ -325,7 +301,7 @@ private fun DrawScope.drawTicks(
             drawText(
                 textMeasurer = textMeasurer,
                 text = "$value",
-                topLeft = textOffset.plus(borderOffset),
+                topLeft = textOffset,
                 style = textStyle
             )
         }
@@ -333,7 +309,7 @@ private fun DrawScope.drawTicks(
 }
 
 private fun DrawScope.drawArcs(
-    borderOffset: Offset,
+    offset: Offset,
     size: Dp,
     style: GaugeArcStyle,
     arcSizeFraction: Float,
@@ -370,7 +346,7 @@ private fun DrawScope.drawArcs(
         useCenter = false,
         style = arcStroke,
         size = arcSize,
-        topLeft = arcTopLeft.plus(borderOffset)
+        topLeft = arcTopLeft.plus(offset)
     )
     val alpha = value / valueRange.endInclusive
     drawArc(
@@ -385,7 +361,7 @@ private fun DrawScope.drawArcs(
         useCenter = false,
         style = arcStroke,
         size = arcSize,
-        topLeft = arcTopLeft.plus(borderOffset)
+        topLeft = arcTopLeft.plus(offset)
     )
 }
 

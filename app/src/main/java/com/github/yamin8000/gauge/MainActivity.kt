@@ -27,6 +27,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Slider
@@ -34,6 +35,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -63,12 +65,12 @@ class MainActivity : ComponentActivity() {
                             val configuration = LocalConfiguration.current
                             val screenWidth = configuration.screenWidthDp.dp
                             var value by remember { mutableFloatStateOf(15f) }
-                            var totalSize by remember { mutableFloatStateOf(350f) }
+                            var totalSize by remember { mutableStateOf(350.dp) }
                             var strokeWidth by remember { mutableFloatStateOf(35f) }
                             val valueRange = 10f..20f
                             Gauge(
+                                modifier = Modifier.size(totalSize),
                                 value = value,
-                                totalSize = totalSize.dp,
                                 numerics = GaugeNumerics(
                                     startAngle = 120,
                                     sweepAngle = 300,
@@ -112,10 +114,10 @@ class MainActivity : ComponentActivity() {
                             )
                             Text("Total Size: $totalSize")
                             Slider(
-                                value = totalSize,
+                                value = totalSize.value,
                                 valueRange = 0f..500f,
                                 onValueChange = {
-                                    totalSize = it
+                                    totalSize = it.dp
                                 }
                             )
 
