@@ -19,7 +19,7 @@
  *     along with Gauge.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.github.yamin8000.gauge
+package com.github.yamin8000.gaugeapp
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -47,7 +47,7 @@ import com.github.yamin8000.gauge.main.GaugeNumerics
 import com.github.yamin8000.gauge.ui.color.GaugeArcColors
 import com.github.yamin8000.gauge.ui.style.GaugeArcStyle
 import com.github.yamin8000.gauge.ui.style.GaugeStyle
-import com.github.yamin8000.gauge.ui.theme.GaugeTheme
+import com.github.yamin8000.gaugeapp.ui.theme.GaugeTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

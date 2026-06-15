@@ -19,7 +19,7 @@
  *     along with Gauge.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.github.yamin8000.gauge.ui.theme
+package com.github.yamin8000.gaugeapp.ui.theme
 
 import android.app.Activity
 import android.os.Build
