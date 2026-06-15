@@ -21,17 +21,20 @@
 
 package com.github.yamin8000.gauge.main
 
+import androidx.compose.runtime.Stable
+
 /**
  * [GaugeNumerics] represent mathematical numbers that are used to visualize the [Gauge].
  *
  * It's advised that [bigTicksStep] being a multiple of [smallTicksStep] so Gauge's more visually appealing.
  *
- * @param startAngle Gauge's starting angle, 0 represents 3 o'clock
+ * @param startAngle Gauge's starting angle, 0 represents 3 o'clock, angle increases in clockwise direction
  * @param sweepAngle size of degrees to draw the Gauge's arc and ticks clockwise relative to [startAngle]
  * @param valueRange the range to bound the value
  * @param smallTicksStep step to draw Gauge's small ticks on [valueRange]
  * @param bigTicksStep step to draw Gauge's big ticks (bigger marks) on [valueRange]
  */
+@Stable
 data class GaugeNumerics(
     val startAngle: Int,
     val sweepAngle: Int,

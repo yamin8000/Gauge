@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -62,12 +63,14 @@ import kotlin.math.sin
  *
  * @param value current value of the [Gauge], this value directly affects
  *    Gauge's arc and Gauge's needle style
- * @param modifier refer to [Modifier]
- * @param valueUnit unit of the Gauge's value like %, km/h or etc
- * @param decimalFormat decimal formatter for value text
  * @param numerics refer to [GaugeNumerics]
+ * @param modifier refer to [Modifier]
+ * @param textSizeFactor a float factor for fine-tuning size of the texts in the gauge
+ * @param valueUnit unit of the Gauge's value like %, km/h or etc
+ * @param valueFormatter a lambda for formatting value text
  * @param style refer to [GaugeStyle]
- * @param ticksColorProvider a lambda for fine tuning of individual tick's
+ * @param colors refer to [GaugeColors]
+ * @param ticksColorProvider a lambda for fine-tuning of individual tick's
  *    color
  * @param arcColorsProvider a lambda for fine tune of arc colors
  * @throws IllegalArgumentException when some parameters are inconsistent
@@ -76,10 +79,13 @@ import kotlin.math.sin
 @Composable
 fun Gauge(
     value: Float,
-    modifier: Modifier = Modifier,
-    valueUnit: String = "",
-    decimalFormat: DecimalFormat = DecimalFormat().apply { maximumFractionDigits = 2 },
     numerics: GaugeNumerics,
+    modifier: Modifier = Modifier,
+    textSizeFactor: Float = 1f,
+    valueUnit: String = "",
+    valueFormatter: (Float) -> String = {
+        DecimalFormat().apply { maximumFractionDigits = 2 }.format(it).trim()
+    },
     style: GaugeStyle = GaugeStyle(),
     colors: GaugeColors = GaugeColors.defaultColors(),
     ticksColorProvider: (List<Pair<Int, Color>>) -> List<Pair<Int, Color>> = { it },
@@ -87,6 +93,9 @@ fun Gauge(
 ) {
     require(value in numerics.valueRange) { "Gauge value: $value is out of Gauge Value range ${numerics.valueRange}" }
     require(numerics.sweepAngle in 1..360) { "Sweep angle: ${numerics.sweepAngle} must be from 1 to 360" }
+    require(textSizeFactor != 0f) { "Text size factor should not be zero" }
+    require(numerics.smallTicksStep != 0) {}
+    require(numerics.bigTicksStep != 0) {}
 
     BoxWithConstraints(
         modifier = modifier
@@ -113,19 +122,27 @@ fun Gauge(
                         )
                     }
                     if (style.hasValueText) {
-                        drawCompatibleText(
+                        val valueTopLeft = center.plus(Offset(0f, size.toPx() / 8))
+                        val valueTextLayout = drawCompatibleText(
                             textMeasurer = textMeasurer,
-                            text = decimalFormat.format(value).trim(),
-                            topLeft = center.plus(Offset(0f, size.toPx() / 8)),
+                            text = valueFormatter(value),
+                            topLeft = valueTopLeft,
                             color = colors.value,
-                            totalSize = safeSize.toDp()
+                            totalSize = safeSize.toDp(),
+                            globalTextSizeFactor = textSizeFactor
                         )
                         drawCompatibleText(
                             textMeasurer = textMeasurer,
                             text = valueUnit.trim(),
-                            topLeft = center.plus(Offset(0f, size.toPx() / 7)),
+                            topLeft = valueTopLeft.plus(
+                                Offset(
+                                    0f,
+                                    valueTextLayout.size.height.toFloat()
+                                )
+                            ),
                             color = colors.value,
-                            totalSize = safeSize.toDp()
+                            totalSize = safeSize.toDp(),
+                            globalTextSizeFactor = textSizeFactor
                         )
                     }
                     drawTicks(
@@ -136,7 +153,8 @@ fun Gauge(
                         size = safeSize.toDp(),
                         textMeasurer = textMeasurer,
                         hasNumbers = style.arcStyle.bigTicksHasLabels,
-                        ticksColorProvider = ticksColorProvider
+                        ticksColorProvider = ticksColorProvider,
+                        globalTextSizeFactor = textSizeFactor
                     )
                     if (style.arcStyle.hasArcs) {
                         drawArcs(
@@ -229,6 +247,7 @@ private fun DrawScope.drawTicks(
     size: Dp,
     textMeasurer: TextMeasurer,
     hasNumbers: Boolean,
+    globalTextSizeFactor: Float,
     ticksColorProvider: (List<Pair<Int, Color>>) -> List<Pair<Int, Color>>
 ) {
     val ticksColors = ticksColorProvider(
@@ -278,13 +297,13 @@ private fun DrawScope.drawTicks(
             )
         }
         if (hasNumbers && isBigTick) {
-            val textSizeFactor = 15f
+            val textSizeFactor = 20f * (1 / globalTextSizeFactor)
             val textStyle = TextStyle(
                 color = colors.bigTicksLabels,
                 fontSize = size.toSp() / textSizeFactor
             )
             val textLayout = textMeasurer.measure("$value", textStyle)
-            val textEndRatio = size.toPx().div(4.25f)
+            val textEndRatio = size.toPx().div(4.5f)
             var textOffset = Offset(
                 x.minus(cos.times(textEndRatio)),
                 y.minus(sin.times(textEndRatio))
@@ -370,9 +389,10 @@ private fun DrawScope.drawCompatibleText(
     color: Color,
     totalSize: Dp,
     textMeasurer: TextMeasurer,
-    topLeft: Offset
-) {
-    val textSizeFactor = 20f
+    topLeft: Offset,
+    globalTextSizeFactor: Float,
+): TextLayoutResult {
+    val textSizeFactor = 20f * (1 / globalTextSizeFactor)
     val textStyle = TextStyle(
         color = color,
         fontSize = totalSize.toSp() / textSizeFactor
@@ -390,4 +410,5 @@ private fun DrawScope.drawCompatibleText(
         topLeft = textOffset,
         style = textStyle
     )
+    return textLayout
 }
