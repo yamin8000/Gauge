@@ -40,12 +40,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import com.github.yamin8000.gauge.main.Gauge
 import com.github.yamin8000.gauge.main.GaugeNumerics
 import com.github.yamin8000.gauge.ui.color.GaugeArcColors
+import com.github.yamin8000.gauge.ui.color.GaugeColors
+import com.github.yamin8000.gauge.ui.color.GaugeNeedleColors
+import com.github.yamin8000.gauge.ui.color.GaugeTicksColors
 import com.github.yamin8000.gauge.ui.style.GaugeArcStyle
+import com.github.yamin8000.gauge.ui.style.GaugeNeedleStyle
 import com.github.yamin8000.gauge.ui.style.GaugeStyle
 import com.github.yamin8000.gaugeapp.ui.theme.GaugeTheme
 

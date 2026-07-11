@@ -22,7 +22,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 private val artifact = "com.github.yamin8000.gauge"
-private val version = "1.1.0"
+private val version = "2.0.0"
 
 plugins {
     id("com.android.library")

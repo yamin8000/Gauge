@@ -30,6 +30,8 @@ https://github.com/yamin8000/Gauge/assets/5001708/a9996ce0-d862-45f2-82f1-e5c740
 
 ### Simple Usage
 
+Note: A more up-to-date sample always can be found [here](https://github.com/yamin8000/Gauge/blob/master/app/src/main/java/com/github/yamin8000/gaugeapp/MainActivity.kt).
+
 <img src="Gauge/screenshots/simple.png" alt="simple preview" width="300"/>
 
 ```kotlin
@@ -67,9 +69,7 @@ fun AdvancedPreview() {
                 modifier = Modifier.padding(8.dp),
                 value = 55.35f,
                 valueUnit = "km/h",
-                decimalFormat = DecimalFormat().apply { maximumFractionDigits = 1 },
-                totalSize = 500.dp,
-                borderInset = 16.dp,
+                valueFormatter = { "(${it})" },
                 numerics = GaugeNumerics(
                     startAngle = 150,
                     sweepAngle = 240,
@@ -94,21 +94,23 @@ fun AdvancedPreview() {
                         ringWidth = 10f
                     )
                 ),
-                borderColor = Color(0xFFFFAB00),
-                centerCircleColor = Color(0xFFFF6D00),
-                valueColor = Color(0xFFFFD600),
-                needleColors = GaugeNeedleColors(
-                    needle = Color(0xFFFFD600),
-                    ring = Color(0xFFFF6D00)
-                ),
-                arcColors = GaugeArcColors(
-                    off = Color(0xFFFFD600),
-                    on = Color(0xFF00C853)
-                ),
-                ticksColors = GaugeTicksColors(
-                    smallTicks = Color(0xFFFF6D00),
-                    bigTicks = Color(0xFFDD2C00),
-                    bigTicksLabels = Color(0xFFFFAB00)
+                colors = GaugeColors(
+                    border = Color(0xFFFFAB00),
+                    centerCircle = Color(0xFFFF6D00),
+                    value = Color(0xFFFFD600),
+                    needle = GaugeNeedleColors(
+                        needle = Color(0xFFFFD600),
+                        ring = Color(0xFFFF6D00)
+                    ),
+                    arc = GaugeArcColors(
+                        off = Color(0xFFFFD600),
+                        on = Color(0xFF00C853)
+                    ),
+                    ticks = GaugeTicksColors(
+                        smallTicks = Color(0xFFFF6D00),
+                        bigTicks = Color(0xFFDD2C00),
+                        bigTicksLabels = Color(0xFFFFAB00)
+                    ),
                 ),
                 arcColorsProvider = { colors, gaugeValue, range ->
                     when (gaugeValue) {
